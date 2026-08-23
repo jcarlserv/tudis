@@ -1,1820 +1,1223 @@
-<!--
-  Tudis - Ferramentas de PDF, OCR & QR Code
-  Uma homenagem ao Tudis, o mução dos Trapalhões! 🎭
-  
-  Recursos:
-  - Ferramentas PDF: juntar, dividir, girar, organizar, numerar, marca d'água, etc
-  - OCR: Reconhecimento de texto em PDFs escaneados e imagens
-  - Conversões: PDF ↔ Word, Excel, PowerPoint
-  - Gerador QR Code: Personalizado com cores e molduras
-  
-  Processamento 100% local - seus arquivos nunca são enviados para servidores
-  
-  GitHub: https://github.com/
--->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tudis - Ferramentas de PDF, OCR & QR Code</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.5.3/qrcode.min.js"></script>
-<style>
-  :root{
-    --paper:#F6F3EC; --paper-2:#EFEAE0; --ink:#21302A; --ink-soft:#5B6B62;
-    --line:#D8D0BE; --stamp:#B23A2E; --stamp-dark:#8E2C22; --ok:#2F6B4F;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0; background:var(--paper); color:var(--ink);
-    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tudis - PDF, OCR e Tudo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  .app{display:flex; flex-direction:column; min-height:100vh;}
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --primary-light: #3b82f6;
+      --secondary: #f97316;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
 
-  /* TOP MENU */
-  .top-menu{background:#fff; border-bottom:1px solid var(--line); padding:0; display:flex; align-items:center; height:auto; overflow-x:auto;}
-  .menu-brand{padding:14px 24px; font-family:Georgia,'Times New Roman',serif; font-weight:700; font-size:18px; color:var(--ink); display:flex; align-items:center; gap:8px; white-space:nowrap; border-right:1px solid var(--line);}
-  .menu-brand .dot{width:8px;height:8px;background:var(--stamp);border-radius:50%;display:inline-block;}
-  .menu-sections{display:flex; flex:1; height:100%;}
-  /* Menu Dropdowns */
-  .menu-section {display:flex; align-items:center; height:100%; border-right:1px solid var(--line); position:relative;}
-  .menu-dropdown{position:relative;}
-  .dropdown-toggle{padding:12px 14px; font-size:13px; font-weight:500; color:var(--ink); cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .12s ease;}
-  .dropdown-toggle:hover{background:var(--paper-2); color:var(--ink);}
-  .dropdown-menu{position:absolute; top:100%; left:0; background:#fff; border:1px solid var(--line); border-top:none; border-radius:0 0 8px 8px; min-width:200px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:1000; display:none; padding:0;}
-  .dropdown-menu.show{display:block;}
-  .dropdown-menu a, .dropdown-menu .menu-item{display:block; padding:12px 16px; font-size:13px; color:var(--ink); cursor:pointer; transition:all .12s ease; border-bottom:1px solid var(--line);}
-  .dropdown-menu a:last-child, .dropdown-menu .menu-item:last-child{border-bottom:none; border-radius:0 0 8px 8px;}
-  .dropdown-menu a:hover, .dropdown-menu .menu-item:hover{background:var(--paper-2); padding-left:20px;}
-  .dropdown-menu a.active, .dropdown-menu .menu-item.active{background:#FBF1EE; color:var(--stamp); font-weight:600;}
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: #f9fafb;
+      color: var(--gray-900);
+    }
 
-  /* Quick Links */
-  .quick-links{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;}
-  .quick-link-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:20px; text-align:center; cursor:pointer; transition:all .2s ease; text-decoration:none; color:var(--ink);}
-  .quick-link-card:hover{border-color:var(--stamp); transform:translateY(-4px); box-shadow:0 8px 20px rgba(178,58,46,0.15);}
-  .quick-link-card .icon{font-size:32px; margin-bottom:12px;}
-  .quick-link-card .title{font-size:14px; font-weight:700; margin-bottom:4px;}
-  .quick-link-card .desc{font-size:12px; color:var(--ink-soft);}
+    /* Header */
+    header {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
 
-  /* Drawer Menu (Mobile) */
-  .menu-drawer{position:fixed; top:0; left:-100%; width:100%; max-width:350px; height:100vh; background:#fff; z-index:9998; transition:left .3s ease; overflow-y:auto; box-shadow:2px 0 8px rgba(0,0,0,0.15);}
-  .menu-drawer.show{left:0;}
-  .menu-drawer-close{position:absolute; top:16px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:var(--ink);}
-  .menu-drawer-section{padding:16px 0; border-bottom:1px solid var(--line);}
-  .menu-drawer-section:first-child{padding-top:60px;}
-  .menu-drawer-title{padding:0 16px; font-size:12px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
-  .menu-drawer-item{padding:12px 16px; color:var(--ink); cursor:pointer; transition:all .12s ease;}
-  .menu-drawer-item:hover{background:var(--paper-2); padding-left:24px;}
-  .menu-drawer-item.active{background:#FBF1EE; color:var(--stamp);}
-  .menu-toggle-btn{display:none; background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink);}
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-  @media (max-width:960px){
-    .top-menu{padding:12px 16px;}
-    .menu-toggle-btn{display:block;}
-    .menu-sections{display:none;}
-  }
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
 
-  .content{flex:1; overflow-y:auto; padding:48px 40px 80px;}
-  .panel{display:none; max-width:760px; margin:0 auto;}
-  .panel.show{display:block;}
+    .logo-image {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+    }
 
-  .eyebrow{font-family:'Courier New',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--stamp); display:flex; align-items:center; gap:8px; margin-bottom:14px;}
-  .eyebrow::before{content:"";width:7px;height:7px;background:var(--stamp);border-radius:50%;display:inline-block;}
-  .panel h1{font-family:Georgia,'Times New Roman',serif; font-size:36px; font-weight:700; line-height:1.08; margin:0 0 10px; letter-spacing:-0.01em;}
-  .panel > p.desc{color:var(--ink-soft); font-size:15px; line-height:1.55; max-width:520px; margin:0 0 30px;}
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
 
-  .home-cat{margin-bottom:34px;}
-  .home-cat h3{font-size:13px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); margin:0 0 12px;}
-  .home-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px;}
-  .home-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px 14px; cursor:pointer; transition:border-color .15s ease, transform .1s ease; display:flex; flex-direction:column; gap:10px;}
-  .home-card:hover{border-color:var(--stamp); transform:translateY(-2px);}
-  .home-card .ic{width:32px;height:32px;border-radius:7px;background:var(--stamp);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;}
-  .home-card .t{font-size:13.5px; font-weight:600;}
+    .logo-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-  .dropzone{border:2px dashed var(--line); border-radius:14px; padding:44px 24px; text-align:center; cursor:pointer; background:var(--paper-2); transition:border-color .18s ease, background .18s ease, transform .12s ease;}
-  .dropzone.drag{border-color:var(--stamp); background:#EFE2DD; transform:scale(1.005);}
-  .dropzone .icon{font-size:26px; margin-bottom:10px; opacity:.7;}
-  .dropzone .main-txt{font-size:16px; font-weight:600; margin-bottom:4px;}
-  .dropzone .sub-txt{font-size:13.5px; color:var(--ink-soft);}
-  .dropzone .sub-txt b{color:var(--stamp); font-weight:600; text-decoration:underline;}
-  input[type=file]{display:none;}
+    .logo-tagline {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
 
-  .file-card{display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-top:18px;}
-  .file-card .grip{cursor:grab; color:var(--ink-soft); font-size:15px; letter-spacing:2px; user-select:none;}
-  .file-card .badge{width:34px;height:40px; background:var(--stamp); border-radius:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Courier New',monospace; font-size:9px; font-weight:700; overflow:hidden;}
-  .file-card .badge img{width:100%; height:100%; object-fit:cover;}
-  .file-card .info{flex:1; min-width:0;}
-  .file-card .fname{font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .file-card .fmeta{font-size:12px; color:var(--ink-soft); margin-top:2px; font-family:'Courier New',monospace;}
-  .icon-btn{border:none; background:transparent; color:var(--ink-soft); cursor:pointer; width:28px;height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; transition:background .12s ease, color .12s ease;}
-  .icon-btn:hover{background:var(--paper-2); color:var(--ink);}
-  .icon-btn.danger:hover{background:#F6DEDA; color:var(--stamp-dark);}
-  .icon-btn:disabled{opacity:.3; cursor:not-allowed;}
+    /* Category Tabs */
+    .category-tabs {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0;
+      position: sticky;
+      top: 70px;
+      z-index: 40;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
 
-  .file-list{margin-top:14px; display:flex; flex-direction:column; gap:10px;}
-  .file-list .file-card{margin-top:0;}
-  .file-card.dragging{opacity:.4;}
-  .file-card .num{font-family:'Courier New',monospace; font-size:12px; color:#fff; background:var(--ink); width:22px;height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+    .tabs-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      gap: 0;
+    }
 
-  .option-group{margin-top:26px;}
-  .option-label{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:10px;}
-  .field-row{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
-  .field-row label{font-size:13.5px; color:var(--ink-soft); min-width:110px;}
-  input[type=text], input[type=number], input[type=email], input[type=tel], input[type=url], select, textarea{padding:9px 11px; border:1px solid var(--line); border-radius:7px; font-size:14px; font-family:inherit; background:#fff;}
-  input[type=range]{accent-color:var(--stamp);}
-  textarea{width:100%; resize:vertical;}
+    .tab {
+      padding: 1rem 1.5rem;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--gray-600);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      font-size: 0.95rem;
+    }
 
-  .mode-options{display:flex; gap:10px; margin-bottom:20px;}
-  .mode-btn{flex:1; border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:14px 14px; text-align:left; cursor:pointer; transition:border-color .15s ease, background .15s ease;}
-  .mode-btn.active{border-color:var(--stamp); background:#FBF1EE;}
-  .mode-btn .m-title{font-size:14px; font-weight:700; margin-bottom:3px;}
-  .mode-btn.active .m-title{color:var(--stamp-dark);}
-  .mode-btn .m-sub{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
+    .tab:hover {
+      color: var(--primary);
+      background: rgba(37, 99, 235, 0.05);
+    }
 
-  .chip-list{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px;}
-  .chip{display:flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--line); border-radius:9px; padding:8px 8px 8px 12px; cursor:grab; font-size:13px;}
-  .chip.dragging{opacity:.4;}
-  .chip .pnum{font-weight:700;}
-  .chip .rot-ic{display:inline-block; transition:transform .15s ease;}
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
 
-  .actions-row{margin-top:26px; display:flex; gap:12px;}
-  button.primary{background:var(--stamp); color:#fff; border:none; font-weight:700; font-size:15px; padding:14px 26px; border-radius:9px; cursor:pointer; transition:background .15s ease, transform .1s ease; flex:1;}
-  button.primary:hover{background:var(--stamp-dark);}
-  button.primary:active{transform:scale(.985);}
-  button.primary:disabled{background:#CBC3B2; cursor:not-allowed;}
-  button.secondary{background:transparent; border:1px solid var(--line); color:var(--ink-soft); font-size:14px; font-weight:600; padding:14px 18px; border-radius:9px; cursor:pointer; transition:border-color .15s ease, color .15s ease;}
-  button.secondary:hover{border-color:var(--ink-soft); color:var(--ink);}
-  button.small{padding:9px 14px; font-size:13px; flex:none;}
+    /* Main Content */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
 
-  .status-row{margin-top:16px; font-size:13.5px; display:none; align-items:center; gap:10px;}
-  .status-row.show{display:flex;}
-  .spinner{width:14px;height:14px; border:2px solid var(--line); border-top-color:var(--stamp); border-radius:50%; animation:spin .7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  .progress-bar{margin-top:10px; height:6px; background:var(--paper-2); border-radius:4px; overflow:hidden; display:none;}
-  .progress-bar.show{display:block;}
-  .progress-bar .fill{height:100%; width:0%; background:var(--stamp); transition:width .2s ease;}
+    .container h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: var(--gray-900);
+    }
 
-  .result-box{margin-top:18px; background:#EAF3EC; border:1px solid #C6E0CC; border-radius:10px; padding:18px; display:none; align-items:center; justify-content:space-between; gap:14px;}
-  .result-box.show{display:flex;}
-  .result-box .rtitle{font-weight:700; color:var(--ok); margin-bottom:2px;}
-  .result-box .rsub{color:var(--ink-soft); font-size:12.5px;}
-  a.download-btn{background:var(--ok); color:#fff; text-decoration:none; font-size:13.5px; font-weight:700; padding:10px 16px; border-radius:7px; white-space:nowrap; transition:background .15s ease;}
-  a.download-btn:hover{background:#255A41;}
+    .container-subtitle {
+      color: var(--gray-600);
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
 
-  .hint{font-size:12.5px; color:var(--ink-soft); margin-top:10px;}
-  .note-box{margin-top:24px; background:var(--paper-2); border:1px solid var(--line); border-radius:9px; padding:12px 14px; font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+    /* Tools Grid */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
 
-  .lang-check{display:flex; gap:16px; margin-bottom:14px;}
-  .lang-check label{display:flex; align-items:center; gap:6px; font-size:13.5px; min-width:0;}
+    .tool-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
-  /* QR Code Styles */
-  .qr-type-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;}
-  .qr-type-btn{padding:12px 16px; border:1px solid var(--line); border-radius:8px; background:#fff; cursor:pointer; text-align:center; font-size:13px; font-weight:500; color:var(--ink); transition:all .2s ease; white-space:nowrap;}
-  .qr-type-btn:hover{background:var(--paper-2); border-color:#8E2C22;}
-  .qr-type-btn.active{background:var(--stamp); color:#fff; border-color:var(--stamp); box-shadow:0 2px 8px rgba(178,58,46,0.3);}
-  .qr-design-section{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px;}
-  .qr-color-input{display:flex; align-items:center; gap:12px;}
-  .qr-color-input input[type="color"]{width:50px; height:50px; border:0.5px solid var(--line); border-radius:6px; cursor:pointer; padding:4px;}
-  .qr-frame-options{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px;}
-  .qr-frame-option{padding:12px; border:1px solid var(--line); border-radius:6px; text-align:center; cursor:pointer; font-size:12px; font-weight:500; background:#fff; color:var(--ink); transition:all .2s;}
-  .qr-frame-option:hover{border-color:#8E2C22; background:var(--paper-2);}
-  .qr-frame-option.active{border-color:var(--stamp); background:rgba(178,58,46,0.1); color:var(--stamp-dark);}
-  .qr-preview-container{background:var(--paper-2); padding:30px; border-radius:12px; display:flex; align-items:center; justify-content:center; min-height:350px; border:1px solid var(--line);}
-  .qr-display{background:#fff; padding:20px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
-  #qrCanvas{border-radius:6px;}
-  .qr-placeholder{color:var(--ink-soft); font-size:14px; text-align:center;}
+    .tool-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.15);
+      border-color: var(--primary-light);
+    }
 
-  /* Admin Styles */
-  .admin-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;}
-  .admin-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:24px;}
-  .admin-card h3{font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin:0 0 16px;}
-  .admin-label{font-size:12px; font-weight:600; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; display:block;}
-  .admin-input{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:7px; font-size:14px; margin-bottom:12px; font-family:inherit;}
-  .admin-input:focus{outline:none; border-color:var(--stamp); box-shadow:0 0 0 3px rgba(178,58,46,0.1);}
-  .color-picker-wrapper{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
-  .color-preview{width:50px; height:50px; border-radius:8px; border:1px solid var(--line);}
-  .logo-preview{width:100px; height:100px; border:1px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; margin:12px 0; background:var(--paper-2);}
-  .logo-preview img{max-width:100%; max-height:100%; border-radius:6px;}
-  .users-table{width:100%; border-collapse:collapse; margin-top:12px;}
-  .users-table th{background:var(--paper-2); padding:12px; text-align:left; font-size:12px; font-weight:700; border-bottom:1px solid var(--line);}
-  .users-table td{padding:12px; border-bottom:1px solid var(--line); font-size:13px;}
-  .users-table tr:hover{background:var(--paper-2);}
-  .role-badge{display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; text-transform:uppercase;}
-  .role-admin{background:#FFE6E6; color:#B23A2E;}
-  .role-editor{background:#E6F2FF; color:#378ADD;}
-  .role-viewer{background:#F0F0F0; color:#666;}
-  .status-badge{display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700;}
-  .status-active{background:#E6F5EA; color:#2F6B4F;}
-  .status-inactive{background:#F9EDED; color:#8E2C22;}
-  .logs-container{max-height:500px; overflow-y:auto; background:var(--paper-2); border-radius:8px; padding:12px;}
-  .log-entry{padding:8px; border-bottom:1px solid var(--line); font-size:12px; font-family:'Courier New',monospace;}
-  .log-entry .log-time{color:var(--stamp); font-weight:700;}
-  .log-entry .log-user{color:var(--ink-soft);}
-  .log-entry .log-action{color:var(--ink);}
+    .tool-card.hidden {
+      display: none;
+    }
 
-  @media (max-width:960px){
-    .admin-grid{grid-template-columns:1fr;}
-  }
-</style>
+    .tool-icon {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .tool-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--gray-900);
+    }
+
+    .tool-description {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      line-height: 1.4;
+      flex-grow: 1;
+    }
+
+    .tool-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--warning), #fbbf24);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      width: fit-content;
+      margin-top: 0.5rem;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .modal.show {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 2rem;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .close-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    /* Upload Area */
+    .dropzone {
+      border: 2px dashed var(--primary-light);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      background: rgba(37, 99, 235, 0.05);
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 1.5rem;
+    }
+
+    .dropzone:hover,
+    .dropzone.drag-over {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.1);
+    }
+
+    .dropzone-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .dropzone-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 0.5rem;
+    }
+
+    .dropzone-subtext {
+      color: var(--gray-600);
+      font-size: 0.95rem;
+    }
+
+    .dropzone-subtext strong {
+      color: var(--primary);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    /* File Info */
+    .file-info {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: none;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-info.show {
+      display: block;
+    }
+
+    .file-info-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .file-icon {
+      width: 50px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .file-details h3 {
+      color: var(--gray-900);
+      margin-bottom: 0.25rem;
+    }
+
+    .file-details p {
+      color: var(--gray-600);
+      font-size: 0.9rem;
+      margin: 0.25rem 0;
+    }
+
+    /* Progress */
+    .progress-container {
+      margin: 1.5rem 0;
+      display: none;
+    }
+
+    .progress-container.show {
+      display: block;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .progress-text {
+      text-align: center;
+      color: var(--gray-600);
+      font-size: 0.85rem;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      flex: 1;
+      min-height: 44px;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-900);
+      border: 1px solid var(--gray-300);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    /* Result */
+    .result-section {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.1));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-top: 1.5rem;
+      display: none;
+      text-align: center;
+    }
+
+    .result-section.show {
+      display: block;
+    }
+
+    .result-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .result-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--success);
+    }
+
+    .result-description {
+      color: var(--gray-600);
+      margin-bottom: 1rem;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, var(--success), #34d399);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .download-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Status */
+    .status-message {
+      display: none;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+    }
+
+    .status-message.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(37, 99, 235, 0.3);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Info Box */
+    .info-box {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(249, 115, 22, 0.1));
+      border-left: 4px solid var(--primary);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+      color: var(--gray-700);
+      font-size: 0.9rem;
+    }
+
+    .info-box strong {
+      color: var(--gray-900);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .tools-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+      }
+
+      .modal-content {
+        width: 95%;
+      }
+
+      .container {
+        padding: 2rem 1rem;
+      }
+
+      .tab {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .header-content {
+        padding: 0.75rem 1rem;
+      }
+
+      .logo-name {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background: var(--gray-900);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+      margin-top: 4rem;
+      font-size: 0.9rem;
+    }
+
+    .no-results {
+      text-align: center;
+      color: var(--gray-600);
+      padding: 3rem;
+    }
+  </style>
 </head>
 <body>
-<div class="app">
-
-  <!-- TOP MENU -->
-  <div class="top-menu">
-    <div class="menu-brand"><span class="dot"></span>Tudis</div>
-    <div class="menu-sections">
-      <!-- PDF Tools -->
-      <div class="menu-section">
-        <div class="menu-section-title">📄 PDF</div>
-        <div class="menu-items">
-          <div class="menu-item active" data-panel="panel-home">Início</div>
-          <div class="menu-item" data-panel="panel-merge">Juntar</div>
-          <div class="menu-item" data-panel="panel-split">Dividir</div>
-          <div class="menu-item" data-panel="panel-rotate">Girar</div>
-          <div class="menu-item" data-panel="panel-delete">Excluir</div>
-          <div class="menu-item" data-panel="panel-extract">Extrair</div>
-          <div class="menu-item" data-panel="panel-organize">Organizar</div>
-          <div class="menu-item" data-panel="panel-number">Numerar</div>
-          <div class="menu-item" data-panel="panel-watermark">Marca d'água</div>
-          <div class="menu-item" data-panel="panel-pdf2jpg">PDF→JPG</div>
-          <div class="menu-item" data-panel="panel-jpg2pdf">JPG→PDF</div>
-          <div class="menu-item" data-panel="panel-compress">Comprimir</div>
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="Tudis Logo" class="logo-image" id="logo-image" style="width: 50px; height: 50px; border-radius: 10px;">
+        <div class="logo-text">
+          <div class="logo-name">Tudis</div>
+          <div class="logo-tagline">PDF, OCR e Tudo</div>
         </div>
       </div>
+    </div>
+  </header>
 
-      <!-- OCR -->
-      <div class="menu-section">
-        <div class="menu-section-title">🔎 OCR</div>
-        <div class="menu-items">
-          <div class="menu-item" data-panel="panel-ocr-pdf">OCR PDF</div>
-          <div class="menu-item" data-panel="panel-ocr-image">OCR Imagem</div>
-        </div>
-      </div>
-
-      <!-- Conversions -->
-      <div class="menu-section">
-        <div class="menu-section-title">🔄 CONVERSÕES</div>
-        <div class="menu-items">
-          <div class="menu-item" data-panel="panel-pdf2word">PDF→Word</div>
-          <div class="menu-item" data-panel="panel-pdf2excel">PDF→Excel</div>
-          <div class="menu-item" data-panel="panel-pdf2ppt">PDF→PPT</div>
-          <div class="menu-item" data-panel="panel-word2pdf">Word→PDF</div>
-          <div class="menu-item" data-panel="panel-excel2pdf">Excel→PDF</div>
-          <div class="menu-item" data-panel="panel-ppt2pdf">PPT→PDF</div>
-        </div>
-      </div>
-
-      <!-- Admin -->
-      <div class="menu-section">
-        <div class="menu-section-title">⚙️ ADMIN</div>
-        <div class="menu-items">
-          <div class="menu-item" data-panel="panel-admin">Configurações</div>
-          <div class="menu-item" data-panel="panel-admin-users">Usuários</div>
-          <div class="menu-item" data-panel="panel-admin-logs">Logs</div>
-          <div class="menu-item" id="logout-btn" style="cursor:pointer; color:#B23A2E;">Sair</div>
-        </div>
-      </div>
+  <!-- Category Tabs -->
+  <div class="category-tabs">
+    <div class="tabs-container" id="tabs-container">
+      <button class="tab active" data-category="todas">Todas</button>
+      <button class="tab" data-category="organizar">Organizar PDF</button>
+      <button class="tab" data-category="converter">Converter PDF</button>
+      <button class="tab" data-category="editar">Editar PDF</button>
+      <button class="tab" data-category="otimizar">Otimizar PDF</button>
+      <button class="tab" data-category="seguranca">Segurança de PDF</button>
+      <button class="tab" data-category="ia">PDF Intelligence</button>
     </div>
   </div>
 
-  <!-- MAIN CONTENT -->
-  <main class="content">
+  <!-- Main Content -->
+  <div class="container">
+    <h1 id="category-title">Todas as ferramentas</h1>
+    <p class="container-subtitle">Tudo o que você precisa para trabalhar com PDF, OCR e muito mais</p>
+    <div class="tools-grid" id="tools-grid"></div>
+    <div class="no-results" id="no-results" style="display: none;">
+      Nenhuma ferramenta encontrada nesta categoria.
+    </div>
+  </div>
 
-    <!-- HOME PANEL -->
-    <div class="panel show" id="panel-home">
-      <div class="eyebrow">Ferramentas inteligentes · processamento local</div>
-      <h1>Bem-vindo ao Tudis</h1>
-      <p class="desc">Edição de PDF, OCR em tempo real, conversão entre formatos e geração de QR Codes — tudo funciona no seu navegador, sem envio de arquivos para servidor.</p>
-
-      <div class="home-cat">
-        <h3>📄 Ferramentas PDF</h3>
-        <div class="home-grid">
-          <div class="home-card" data-panel="panel-merge"><div class="ic">📎</div><div class="t">Juntar PDF</div></div>
-          <div class="home-card" data-panel="panel-split"><div class="ic">✂️</div><div class="t">Dividir PDF</div></div>
-          <div class="home-card" data-panel="panel-rotate"><div class="ic">🔄</div><div class="t">Girar PDF</div></div>
-          <div class="home-card" data-panel="panel-watermark"><div class="ic">💧</div><div class="t">Marca d'água</div></div>
-          <div class="home-card" data-panel="panel-pdf2jpg"><div class="ic">🖼️</div><div class="t">PDF→JPG</div></div>
-          <div class="home-card" data-panel="panel-compress"><div class="ic">🗜️</div><div class="t">Comprimir</div></div>
-        </div>
+  <!-- Modal -->
+  <div class="modal" id="tool-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title"></h2>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
       </div>
-
-      <div class="home-cat">
-        <h3>🔄 OCR & Conversões</h3>
-        <div class="home-grid">
-          <div class="home-card" data-panel="panel-ocr-pdf"><div class="ic">🔎</div><div class="t">OCR de PDF</div></div>
-          <div class="home-card" data-panel="panel-pdf2word"><div class="ic">W</div><div class="t">PDF→Word</div></div>
-          <div class="home-card" data-panel="panel-pdf2excel"><div class="ic">X</div><div class="t">PDF→Excel</div></div>
-          <div class="home-card" data-panel="panel-pdf2ppt"><div class="ic">P</div><div class="t">PDF→PPT</div></div>
-        </div>
-      </div>
-
-      <div class="home-cat">
-        <h3>🔲 Gerador QR Code</h3>
-        <div class="home-grid">
-          <div class="home-card" data-panel="panel-qrcode"><div class="ic">⬜⬛</div><div class="t">QR Code</div></div>
-        </div>
-      </div>
-
-      <div class="note-box">
-        💡 <strong>Privacidade garantida:</strong> Todo o processamento acontece localmente no seu navegador. Seus arquivos nunca são enviados para nenhum servidor.
-      </div>
+      <div class="modal-body" id="modal-body"></div>
     </div>
+  </div>
 
-    <!-- PDF TOOLS PANELS -->
-    <!-- MERGE -->
-    <div class="panel" id="panel-merge">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Juntar PDF</h1>
-      <p class="desc">Arraste vários PDFs, organize a ordem e gere um único arquivo.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">📎</div><div class="main-txt">Arraste os arquivos PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" multiple data-role="input"></div>
-      <div class="file-list" data-role="list"></div>
-      <div class="hint" data-role="summary" style="display:none;"></div>
-      <div class="actions-row" data-role="actions" style="display:none;"><button class="secondary" data-role="clear">Limpar tudo</button><button class="primary" data-role="run" disabled>Juntar PDFs</button></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Juntando arquivos…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ PDF gerado com sucesso</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-unido.pdf">Baixar PDF</a></div>
-    </div>
+  <!-- Footer -->
+  <footer>
+    <p>© 2024 Tudis - PDF, OCR e Tudo | Ferramentas seguras processadas localmente no seu navegador</p>
+  </footer>
 
-    <!-- SPLIT -->
-    <div class="panel" id="panel-split">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Dividir PDF</h1>
-      <p class="desc">Envie um PDF e escolha como separar as páginas.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">✂️</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="option-group"><div class="option-label">Como dividir</div><div class="mode-options"><div class="mode-btn active" data-mode="ranges"><div class="m-title">Por intervalos</div><div class="m-sub">Cada grupo de páginas vira um PDF separado</div></div><div class="mode-btn" data-mode="every"><div class="m-title">Páginas individuais</div><div class="m-sub">Cada página vira um PDF separado</div></div></div><div data-role="rangePanel"></div><button class="secondary" data-role="addRange" style="margin-top:6px;">+ Adicionar intervalo</button><div class="hint" data-role="everyHint" style="display:none;">Cada página será salva como um PDF individual, dentro de um .zip.</div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run" disabled>Dividir PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Dividindo arquivo…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Dividido com sucesso</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="paginas-divididas.zip">Baixar .zip</a></div>
-    </div>
+  <script>
+    const { PDFDocument } = PDFLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    <!-- ROTATE -->
-    <div class="panel" id="panel-rotate">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Girar PDF</h1>
-      <p class="desc">Gire todas as páginas do documento na direção escolhida.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">🔄</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="option-group"><div class="option-label">Rotação a aplicar em todas as páginas</div><div class="field-row"><button class="secondary" data-role="rotLeft">↺ Girar 90° à esquerda</button><button class="secondary" data-role="rotRight">↻ Girar 90° à direita</button><button class="secondary" data-role="rotReset">Redefinir</button></div><div class="hint">Rotação atual a aplicar: <b data-role="rotValue">0°</b></div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Girar e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Girando páginas…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ PDF girado com sucesso</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-girado.pdf">Baixar PDF</a></div>
-    </div>
+    // Ferramentas disponíveis
+    const tools = [
+      // Organizar PDF
+      {
+        id: 'separar-pdf',
+        icon: '✂️',
+        name: 'Separar PDF',
+        description: 'Transforme cada página do seu PDF em um arquivo separado',
+        category: 'organizar',
+        implemented: true
+      },
+      {
+        id: 'juntar-pdf',
+        icon: '📎',
+        name: 'Juntar PDF',
+        description: 'Combine múltiplos arquivos PDF em um único documento',
+        category: 'organizar',
+        implemented: false
+      },
+      {
+        id: 'organizar-paginas',
+        icon: '🗂️',
+        name: 'Organizar Páginas',
+        description: 'Reordene as páginas do seu PDF como preferir',
+        category: 'organizar',
+        implemented: false
+      },
+      {
+        id: 'extrair-paginas',
+        icon: '🧩',
+        name: 'Extrair Páginas',
+        description: 'Extraia páginas específicas de um PDF',
+        category: 'organizar',
+        implemented: false
+      },
+      {
+        id: 'excluir-paginas',
+        icon: '🗑️',
+        name: 'Excluir Páginas',
+        description: 'Remova páginas específicas do seu PDF',
+        category: 'organizar',
+        implemented: false
+      },
+      {
+        id: 'dividir-pdf',
+        icon: '📊',
+        name: 'Dividir PDF',
+        description: 'Divida um PDF em múltiplos arquivos por intervalo',
+        category: 'organizar',
+        implemented: false
+      },
+      {
+        id: 'comparar-pdf',
+        icon: '👁️',
+        name: 'Comparar PDF',
+        description: 'Compare e identifique diferenças entre PDFs',
+        category: 'organizar',
+        implemented: false
+      },
+      {
+        id: 'recortar-pdf',
+        icon: '🔪',
+        name: 'Recortar PDF',
+        description: 'Recorte as margens de documentos PDF',
+        category: 'organizar',
+        implemented: false
+      },
 
-    <!-- DELETE PAGES -->
-    <div class="panel" id="panel-delete">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Excluir páginas</h1>
-      <p class="desc">Escolha quais páginas remover do documento.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">🗑️</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="option-group"><div class="option-label">Páginas a excluir</div><div class="field-row"><input type="text" data-role="pages" placeholder="ex: 2, 5, 8-10" style="flex:1; min-width:200px;"></div><div class="hint">Use vírgulas para páginas soltas e hífen para intervalos. O documento tem <b data-role="pageCount">0</b> páginas.</div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run" disabled>Excluir e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Removendo páginas…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Páginas removidas</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-sem-paginas.pdf">Baixar PDF</a></div>
-    </div>
+      // Converter PDF
+      {
+        id: 'pdf-para-word',
+        icon: 'W',
+        name: 'PDF para Word',
+        description: 'Converta PDFs para documentos WORD editáveis',
+        category: 'converter',
+        implemented: false
+      },
+      {
+        id: 'pdf-para-powerpoint',
+        icon: 'P',
+        name: 'PDF para PowerPoint',
+        description: 'Transforme PDFs em apresentações PowerPoint',
+        category: 'converter',
+        implemented: false
+      },
+      {
+        id: 'pdf-para-excel',
+        icon: 'X',
+        name: 'PDF para Excel',
+        description: 'Extraia dados PDF para planilhas Excel',
+        category: 'converter',
+        implemented: false
+      },
+      {
+        id: 'word-para-pdf',
+        icon: 'W',
+        name: 'Word para PDF',
+        description: 'Converta documentos WORD em PDFs',
+        category: 'converter',
+        implemented: false
+      },
+      {
+        id: 'pdf-para-jpg',
+        icon: '🖼️',
+        name: 'PDF para JPG',
+        description: 'Transforme páginas PDF em imagens JPG',
+        category: 'converter',
+        implemented: false
+      },
+      {
+        id: 'jpg-para-pdf',
+        icon: '📷',
+        name: 'JPG para PDF',
+        description: 'Converta imagens JPG em um único PDF',
+        category: 'converter',
+        implemented: false
+      },
+      {
+        id: 'html-para-pdf',
+        icon: '🌐',
+        name: 'HTML para PDF',
+        description: 'Converta páginas web em PDFs',
+        category: 'converter',
+        implemented: false
+      },
+      {
+        id: 'pdf-para-markdown',
+        icon: '📝',
+        name: 'PDF para Markdown',
+        description: 'Converta PDFs em arquivos Markdown',
+        category: 'converter',
+        implemented: false,
+        badge: 'Novo'
+      },
 
-    <!-- EXTRACT PAGES -->
-    <div class="panel" id="panel-extract">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Extrair páginas</h1>
-      <p class="desc">Escolha quais páginas manter — o resto é descartado.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">🧩</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="option-group"><div class="option-label">Páginas a manter</div><div class="field-row"><input type="text" data-role="pages" placeholder="ex: 1-3, 7" style="flex:1; min-width:200px;"></div><div class="hint">A ordem digitada é respeitada. O documento tem <b data-role="pageCount">0</b> páginas.</div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run" disabled>Extrair e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Extraindo páginas…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Páginas extraídas</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="paginas-extraidas.pdf">Baixar PDF</a></div>
-    </div>
+      // Editar PDF
+      {
+        id: 'editar-pdf',
+        icon: '✏️',
+        name: 'Editar PDF',
+        description: 'Adicione texto, imagens e anotações ao PDF',
+        category: 'editar',
+        implemented: false
+      },
+      {
+        id: 'marca-dagua',
+        icon: '💧',
+        name: 'Marca d\'água',
+        description: 'Adicione marca d\'água a seus PDFs',
+        category: 'editar',
+        implemented: false
+      },
+      {
+        id: 'numerar-paginas',
+        icon: '#️⃣',
+        name: 'Numerar Páginas',
+        description: 'Adicione números de página ao seu PDF',
+        category: 'editar',
+        implemented: false
+      },
+      {
+        id: 'girar-pdf',
+        icon: '🔄',
+        name: 'Girar Páginas',
+        description: 'Rotacione páginas para a orientação correta',
+        category: 'editar',
+        implemented: false
+      },
+      {
+        id: 'rodar-pdf',
+        icon: '↩️',
+        name: 'Rodar PDF',
+        description: 'Gire PDFs em qualquer ângulo',
+        category: 'editar',
+        implemented: false
+      },
+      {
+        id: 'ocultar-pdf',
+        icon: '👁️‍🗨️',
+        name: 'Ocultar PDF',
+        description: 'Oculte texto e gráficos sensíveis',
+        category: 'editar',
+        implemented: false
+      },
+      {
+        id: 'formularios-pdf',
+        icon: '📋',
+        name: 'Formulários PDF',
+        description: 'Crie e edite formulários interativos',
+        category: 'editar',
+        implemented: false,
+        badge: 'Novo'
+      },
 
-    <!-- ORGANIZE PAGES -->
-    <div class="panel" id="panel-organize">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Organizar páginas</h1>
-      <p class="desc">Arraste para reordenar, gire ou exclua páginas individualmente.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">🗂️</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="chip-list" data-role="chips"></div>
-        <div class="hint">Arraste os cartões para reordenar. Use ↻ para girar e ✕ para excluir.</div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Salvar novo PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Salvando…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ PDF salvo</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-organizado.pdf">Baixar PDF</a></div>
-    </div>
+      // Otimizar PDF
+      {
+        id: 'comprimir-pdf',
+        icon: '🗜️',
+        name: 'Comprimir PDF',
+        description: 'Reduza o tamanho do arquivo PDF',
+        category: 'otimizar',
+        implemented: false
+      },
+      {
+        id: 'reparar-pdf',
+        icon: '🔧',
+        name: 'Reparar PDF',
+        description: 'Corrija PDFs danificados',
+        category: 'otimizar',
+        implemented: false
+      },
+      {
+        id: 'pdf-para-pdfa',
+        icon: '📄',
+        name: 'PDF para PDF/A',
+        description: 'Converta para formato PDF/A arquivável',
+        category: 'otimizar',
+        implemented: false
+      },
+      {
+        id: 'ocr-pdf',
+        icon: '🔍',
+        name: 'OCR PDF',
+        description: 'Converta PDFs escaneados em texto pesquisável',
+        category: 'otimizar',
+        implemented: false,
+        badge: 'Novo'
+      },
+      {
+        id: 'digitalizar-pdf',
+        icon: '📱',
+        name: 'Digitalizar em PDF',
+        description: 'Capture e transforme documentos em PDFs',
+        category: 'otimizar',
+        implemented: false
+      },
 
-    <!-- NUMBER PAGES -->
-    <div class="panel" id="panel-number">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Numerar páginas</h1>
-      <p class="desc">Adicione a numeração das páginas em qualquer canto do documento.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">#️⃣</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="option-group"><div class="field-row"><label>Posição</label><select data-role="position"><option value="bottom-center" selected>Inferior · centro</option><option value="bottom-right">Inferior · direita</option><option value="bottom-left">Inferior · esquerda</option><option value="top-center">Superior · centro</option><option value="top-right">Superior · direita</option><option value="top-left">Superior · esquerda</option></select></div><div class="field-row"><label>Formato</label><select data-role="format"><option value="n" selected>1, 2, 3…</option><option value="page-n-of-total">Página 1 de N</option></select></div><div class="field-row"><label>Começar em</label><input type="number" data-role="start" value="1" min="1" style="width:80px;"></div><div class="field-row"><label>Tamanho da fonte</label><input type="number" data-role="fontsize" value="11" min="6" max="30" style="width:80px;"></div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Numerar e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Numerando páginas…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Páginas numeradas</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-numerado.pdf">Baixar PDF</a></div>
-    </div>
+      // Segurança de PDF
+      {
+        id: 'assinar-pdf',
+        icon: '✍️',
+        name: 'Assinar PDF',
+        description: 'Assine digitalmente seus PDFs',
+        category: 'seguranca',
+        implemented: false
+      },
+      {
+        id: 'proteger-pdf',
+        icon: '🔐',
+        name: 'Proteger PDF',
+        description: 'Proteja PDFs com senha',
+        category: 'seguranca',
+        implemented: false
+      },
+      {
+        id: 'desbloquear-pdf',
+        icon: '🔓',
+        name: 'Desbloquear PDF',
+        description: 'Remova proteção de senhas',
+        category: 'seguranca',
+        implemented: false
+      },
 
-    <!-- WATERMARK -->
-    <div class="panel" id="panel-watermark">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Marca d'água</h1>
-      <p class="desc">Adicione um texto em marca d'água em todas as páginas.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">💧</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="option-group"><div class="field-row"><label>Texto</label><input type="text" data-role="text" value="CONFIDENCIAL" style="flex:1; min-width:200px;"></div><div class="field-row"><label>Tamanho</label><input type="number" data-role="fontsize" value="48" min="10" max="150" style="width:80px;"></div><div class="field-row"><label>Opacidade</label><input type="range" data-role="opacity" min="0.05" max="0.6" step="0.05" value="0.25"></div><div class="field-row"><label>Ângulo</label><input type="number" data-role="angle" value="45" min="-90" max="90" style="width:80px;"></div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Aplicar e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Aplicando marca d'água…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Marca d'água aplicada</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-marca-dagua.pdf">Baixar PDF</a></div>
-    </div>
-
-    <!-- PDF TO JPG -->
-    <div class="panel" id="panel-pdf2jpg">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>PDF para JPG</h1>
-      <p class="desc">Transforme cada página do PDF em uma imagem JPG.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">🖼️</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="option-group"><div class="field-row"><label>Qualidade</label><select data-role="quality"><option value="1">Baixa (mais rápido)</option><option value="1.5" selected>Média</option><option value="2.5">Alta</option></select></div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Converter e baixar .zip</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Convertendo páginas…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Convertido com sucesso</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="paginas-jpg.zip">Baixar .zip</a></div>
-    </div>
-
-    <!-- JPG TO PDF -->
-    <div class="panel" id="panel-jpg2pdf">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>JPG para PDF</h1>
-      <p class="desc">Envie imagens e junte tudo em um único PDF, uma imagem por página.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">📷</div><div class="main-txt">Arraste as imagens aqui</div><div class="sub-txt">ou <b>clique para escolher</b> (JPG ou PNG)</div><input type="file" accept="image/jpeg,image/png" multiple data-role="input"></div>
-      <div class="file-list" data-role="list"></div>
-      <div class="hint" data-role="summary" style="display:none;"></div>
-      <div class="actions-row" data-role="actions" style="display:none;"><button class="secondary" data-role="clear">Limpar tudo</button><button class="primary" data-role="run" disabled>Gerar PDF</button></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Gerando PDF…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ PDF gerado</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="imagens.pdf">Baixar PDF</a></div>
-    </div>
-
-    <!-- COMPRESS -->
-    <div class="panel" id="panel-compress">
-      <div class="eyebrow">Ferramentas PDF</div>
-      <h1>Comprimir PDF</h1>
-      <p class="desc">Reorganiza a estrutura interna do arquivo para reduzir o tamanho.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">🗜️</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove" title="Remover">✕</button></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Comprimir e baixar PDF</button></div>
-        <div class="note-box">Esta compressão é estrutural (reorganiza objetos internos do PDF) e roda sem servidor. Ela funciona melhor em PDFs com muitas páginas ou metadados redundantes; não recodifica imagens internas, então o ganho varia bastante conforme o arquivo.</div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Comprimindo…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Concluído</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-comprimido.pdf">Baixar PDF</a></div>
-    </div>
-
-    <!-- OCR & CONVERSION PANELS -->
-    <!-- OCR PDF -->
-    <div class="panel" id="panel-ocr-pdf">
-      <div class="eyebrow">OCR</div>
-      <h1>OCR de PDF</h1>
-      <p class="desc">Transforma um PDF escaneado (imagem) em um PDF com texto pesquisável e selecionável.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">🔎</div><div class="main-txt">Arraste o PDF escaneado aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="option-group"><div class="field-row"><label>Idioma do texto</label></div><div class="lang-check"><label><input type="checkbox" data-role="lang-por" checked> Português</label><label><input type="checkbox" data-role="lang-eng"> Inglês</label></div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Rodar OCR e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Processando…</span></div>
-      <div class="progress-bar" data-role="progress"><div class="fill" data-role="progressFill"></div></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ OCR concluído</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento-ocr.pdf">Baixar PDF</a></div>
-      <div class="note-box">Documentos longos podem levar alguns minutos — o OCR roda página por página, aqui mesmo no navegador.</div>
-    </div>
-
-    <!-- OCR IMAGE -->
-    <div class="panel" id="panel-ocr-image">
-      <div class="eyebrow">OCR</div>
-      <h1>OCR de imagem</h1>
-      <p class="desc">Extraia o texto de uma foto ou imagem escaneada.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">📸</div><div class="main-txt">Arraste a imagem aqui</div><div class="sub-txt">ou <b>clique para escolher</b> (JPG ou PNG)</div><input type="file" accept="image/jpeg,image/png" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">IMG</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="option-group"><div class="lang-check"><label><input type="checkbox" data-role="lang-por" checked> Português</label><label><input type="checkbox" data-role="lang-eng"> Inglês</label></div></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Extrair texto</button></div>
-        <textarea data-role="output" style="margin-top:16px; display:none;" readonly></textarea>
-        <div class="actions-row" data-role="outputActions" style="display:none;"><button class="secondary small" data-role="copy">Copiar texto</button><button class="secondary small" data-role="downloadTxt">Baixar .txt</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Reconhecendo texto…</span></div>
-      <div class="progress-bar" data-role="progress"><div class="fill" data-role="progressFill"></div></div>
-    </div>
-
-    <!-- PDF TO WORD -->
-    <div class="panel" id="panel-pdf2word">
-      <div class="eyebrow">Conversões</div>
-      <h1>PDF para Word</h1>
-      <p class="desc">Extrai o texto do PDF e gera um documento do Word editável.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">W</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Converter e baixar .doc</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Extraindo texto…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Convertido</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento.doc">Baixar .doc</a></div>
-      <div class="note-box">Se o PDF for uma imagem escaneada (sem texto real), use primeiro o OCR de PDF.</div>
-    </div>
-
-    <!-- PDF TO EXCEL -->
-    <div class="panel" id="panel-pdf2excel">
-      <div class="eyebrow">Conversões</div>
-      <h1>PDF para Excel</h1>
-      <p class="desc">Tenta reconstruir tabelas do PDF em uma planilha, uma aba por página.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">X</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Converter e baixar .xlsx</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Analisando páginas…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Convertido</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="planilha.xlsx">Baixar .xlsx</a></div>
-      <div class="note-box">A separação em colunas é feita por espaçamento entre textos — funciona bem em tabelas simples.</div>
-    </div>
-
-    <!-- PDF TO PPT -->
-    <div class="panel" id="panel-pdf2ppt">
-      <div class="eyebrow">Conversões</div>
-      <h1>PDF para PowerPoint</h1>
-      <p class="desc">Cada página do PDF se torna um slide, com a aparência original preservada como imagem.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">P</div><div class="main-txt">Arraste o PDF aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept="application/pdf" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PDF</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Converter e baixar .pptx</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Gerando slides…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Convertido</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="apresentacao.pptx">Baixar .pptx</a></div>
-      <div class="note-box">O texto nos slides fica como imagem (igual ao PDF original), não como texto editável.</div>
-    </div>
-
-    <!-- WORD TO PDF -->
-    <div class="panel" id="panel-word2pdf">
-      <div class="eyebrow">Conversões</div>
-      <h1>Word para PDF</h1>
-      <p class="desc">Converte um documento .docx em PDF, preservando texto, títulos e listas.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">W</div><div class="main-txt">Arraste o .docx aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">DOC</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Converter e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Convertendo…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Convertido</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="documento.pdf">Baixar PDF</a></div>
-      <div class="note-box">Suporta apenas arquivos .docx (não o formato .doc antigo).</div>
-    </div>
-
-    <!-- EXCEL TO PDF -->
-    <div class="panel" id="panel-excel2pdf">
-      <div class="eyebrow">Conversões</div>
-      <h1>Excel para PDF</h1>
-      <p class="desc">Converte cada aba da planilha em páginas de PDF com tabela.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">X</div><div class="main-txt">Arraste o .xlsx aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept=".xlsx,.xls,.csv" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">XLS</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Converter e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Convertendo…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Convertido</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="planilha.pdf">Baixar PDF</a></div>
-      <div class="note-box">Formatação de células, cores e gráficos não são recriados — apenas os valores em formato de tabela.</div>
-    </div>
-
-    <!-- PPT TO PDF -->
-    <div class="panel" id="panel-ppt2pdf">
-      <div class="eyebrow">Conversões</div>
-      <h1>PowerPoint para PDF</h1>
-      <p class="desc">Extrai o texto de cada slide e gera uma página de PDF por slide.</p>
-      <div class="dropzone" data-role="dropzone"><div class="icon">P</div><div class="main-txt">Arraste o .pptx aqui</div><div class="sub-txt">ou <b>clique para escolher</b></div><input type="file" accept=".pptx" data-role="input"></div>
-      <div data-role="fileArea" style="display:none;"><div class="file-card"><div class="badge">PPT</div><div class="info"><div class="fname" data-role="fname"></div><div class="fmeta" data-role="fmeta"></div></div><button class="icon-btn danger" data-role="remove">✕</button></div>
-        <div class="actions-row"><button class="secondary" data-role="clear">Limpar</button><button class="primary" data-role="run">Converter e baixar PDF</button></div></div>
-      <div class="status-row" data-role="status"><div class="spinner"></div><span data-role="statusText">Convertendo…</span></div>
-      <div class="result-box" data-role="result"><div><div class="rtitle" data-role="rtitle">✓ Convertido</div><div class="rsub" data-role="rsub"></div></div><a class="download-btn" data-role="download" download="apresentacao.pdf">Baixar PDF</a></div>
-      <div class="note-box">Esta conversão só recupera o texto de cada slide — o design visual não é reproduzido.</div>
-    </div>
-
-    <!-- ADMIN PANELS -->
-    <!-- LOGIN MODAL -->
-    <div id="loginModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;">
-      <div style="background:#fff; border-radius:12px; padding:40px; width:90%; max-width:400px; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
-        <h2 style="margin:0 0 30px; font-family:Georgia; font-size:24px; color:var(--ink);">Acesso ao Tudis Admin</h2>
-        <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:8px; display:block;">Usuário</label>
-          <input type="text" id="loginUser" placeholder="seu usuário" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:7px; font-size:14px;">
-        </div>
-        <div class="form-group" style="margin-bottom:24px;">
-          <label style="font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:8px; display:block;">Senha</label>
-          <input type="password" id="loginPass" placeholder="sua senha" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:7px; font-size:14px;">
-        </div>
-        <button id="loginBtn" class="primary" style="width:100%; margin-bottom:12px;">Entrar</button>
-        <button id="demoLoginBtn" class="secondary" style="width:100%;">Demo (admin/admin)</button>
-      </div>
-    </div>
-
-    <!-- ADMIN CONFIGURAÇÕES -->
-    <div class="panel" id="panel-admin">
-      <div class="eyebrow">Administração</div>
-      <h1>Configurações do Sistema</h1>
-      <p class="desc">Configure o nome do sistema, logomarca, cores e informações gerais.</p>
-
-      <div class="admin-grid">
-        <!-- Informações Gerais -->
-        <div class="admin-card">
-          <h3>📋 Informações Gerais</h3>
-          <label class="admin-label">Nome do Sistema</label>
-          <input type="text" id="configSystemName" class="admin-input" placeholder="Tudis" value="Tudis">
-          
-          <label class="admin-label">Descrição</label>
-          <textarea id="configSystemDesc" class="admin-input" placeholder="Descrição do sistema" style="min-height:80px; resize:vertical;">Ferramentas de PDF, OCR e QR Code</textarea>
-          
-          <label class="admin-label">Versão</label>
-          <input type="text" id="configSystemVersion" class="admin-input" placeholder="1.0.0" value="1.0.0" readonly style="background:var(--paper-2); cursor:not-allowed;">
-          
-          <label class="admin-label">Desenvolvedor</label>
-          <input type="text" id="configDeveloper" class="admin-input" placeholder="Seu nome" value="Desenvolvedor">
-        </div>
-
-        <!-- Cores e Aparência -->
-        <div class="admin-card">
-          <h3>🎨 Cores e Aparência</h3>
-          
-          <label class="admin-label">Cor Principal</label>
-          <div class="color-picker-wrapper">
-            <input type="color" id="configColorStamp" value="#B23A2E" style="width:60px; height:50px; border:1px solid var(--line); border-radius:7px; cursor:pointer;">
-            <input type="text" id="configColorStampHex" class="admin-input" value="#B23A2E" style="flex:1;">
-          </div>
-
-          <label class="admin-label">Cor Secundária</label>
-          <div class="color-picker-wrapper">
-            <input type="color" id="configColorAccent" value="#2F6B4F" style="width:60px; height:50px; border:1px solid var(--line); border-radius:7px; cursor:pointer;">
-            <input type="text" id="configColorAccentHex" class="admin-input" value="#2F6B4F" style="flex:1;">
-          </div>
-
-          <label class="admin-label">Tema</label>
-          <select id="configTheme" class="admin-input">
-            <option value="light">Claro</option>
-            <option value="dark">Escuro</option>
-            <option value="auto">Automático</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Logo -->
-      <div class="admin-card" style="margin-bottom:24px;">
-        <h3>🖼️ Logomarca</h3>
-        <p style="font-size:13px; color:var(--ink-soft); margin-bottom:12px;">Upload de logo (PNG, JPG, SVG - máx 500KB)</p>
-        <input type="file" id="configLogoUpload" accept="image/*" style="margin-bottom:12px;">
-        <div class="logo-preview" id="logoPreview">
-          <span class="dot" style="width:40px; height:40px; background:var(--stamp); display:inline-block; border-radius:50%;"></span>
-        </div>
-        <button class="secondary" id="clearLogoBtn" style="width:100%;">Remover Logo</button>
-      </div>
-
-      <div style="display:flex; gap:12px;">
-        <button class="primary" id="saveConfigBtn" style="flex:1;">💾 Salvar Configurações</button>
-        <button class="secondary" id="resetConfigBtn" style="flex:1;">↺ Restaurar Padrões</button>
-      </div>
-    </div>
-
-    <!-- ADMIN USUÁRIOS -->
-    <div class="panel" id="panel-admin-users">
-      <div class="eyebrow">Administração</div>
-      <h1>Gerenciar Usuários</h1>
-      <p class="desc">Adicione, edite e configure permissões de acesso dos usuários.</p>
-
-      <div class="admin-grid">
-        <!-- Novo Usuário -->
-        <div class="admin-card">
-          <h3>➕ Novo Usuário</h3>
-          
-          <label class="admin-label">Nome de Usuário</label>
-          <input type="text" id="newUserName" class="admin-input" placeholder="Ex: joao.silva">
-          
-          <label class="admin-label">Email</label>
-          <input type="email" id="newUserEmail" class="admin-input" placeholder="joao@exemplo.com">
-          
-          <label class="admin-label">Senha</label>
-          <input type="password" id="newUserPass" class="admin-input" placeholder="Mínimo 6 caracteres">
-          
-          <label class="admin-label">Perfil de Acesso</label>
-          <select id="newUserRole" class="admin-input">
-            <option value="admin">Administrador</option>
-            <option value="editor">Editor</option>
-            <option value="viewer">Visualizador</option>
-          </select>
-          
-          <label class="admin-label">Status</label>
-          <select id="newUserStatus" class="admin-input">
-            <option value="ativo">Ativo</option>
-            <option value="inativo">Inativo</option>
-          </select>
-          
-          <button class="primary" id="addUserBtn" style="width:100%;">Adicionar Usuário</button>
-        </div>
-
-        <!-- Descrição de Perfis -->
-        <div class="admin-card">
-          <h3>👥 Perfis de Acesso</h3>
-          
-          <div style="margin-bottom:16px;">
-            <strong style="color:var(--stamp);">👑 Administrador</strong>
-            <p style="font-size:12px; color:var(--ink-soft); margin:4px 0;">Acesso total ao sistema, gerenciamento de usuários, configurações e logs.</p>
-          </div>
-          
-          <div style="margin-bottom:16px;">
-            <strong style="color:#378ADD;">✏️ Editor</strong>
-            <p style="font-size:12px; color:var(--ink-soft); margin:4px 0;">Acesso a todas as ferramentas e recursos, sem gerenciar usuários.</p>
-          </div>
-          
-          <div>
-            <strong style="color:#666;">👁️ Visualizador</strong>
-            <p style="font-size:12px; color:var(--ink-soft); margin:4px 0;">Acesso limitado - apenas visualizar, sem fazer downloads.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Lista de Usuários -->
-      <div class="admin-card">
-        <h3>📊 Usuários do Sistema</h3>
-        <div style="overflow-x:auto;">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>Usuário</th>
-                <th>Email</th>
-                <th>Perfil</th>
-                <th>Status</th>
-                <th>Criado em</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <!-- Preenchido por JavaScript -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ADMIN LOGS -->
-    <div class="panel" id="panel-admin-logs">
-      <div class="eyebrow">Administração</div>
-      <h1>Logs do Sistema</h1>
-      <p class="desc">Histórico de atividades e eventos do sistema.</p>
-
-      <div class="admin-grid">
-        <div class="admin-card">
-          <h3>⏱️ Filtros</h3>
-          
-          <label class="admin-label">Tipo de Evento</label>
-          <select id="filterLogType" class="admin-input">
-            <option value="all">Todos</option>
-            <option value="login">Login</option>
-            <option value="logout">Logout</option>
-            <option value="tool_use">Uso de Ferramenta</option>
-            <option value="config_change">Alteração de Config</option>
-            <option value="user_manage">Gerenciamento de Usuário</option>
-          </select>
-
-          <label class="admin-label">Período</label>
-          <select id="filterLogPeriod" class="admin-input">
-            <option value="today">Hoje</option>
-            <option value="week">Últimos 7 dias</option>
-            <option value="month">Últimos 30 dias</option>
-            <option value="all">Tudo</option>
-          </select>
-
-          <button class="primary" id="applyFilterBtn" style="width:100%;">Aplicar Filtro</button>
-          <button class="secondary" id="clearLogsBtn" style="width:100%; margin-top:8px;">Limpar Logs</button>
-        </div>
-
-        <div class="admin-card">
-          <h3>📈 Estatísticas</h3>
-          <div style="padding:12px; background:var(--paper-2); border-radius:8px; margin-bottom:12px;">
-            <p style="margin:0; font-size:12px; color:var(--ink-soft);">Total de Logs</p>
-            <p style="margin:4px 0 0; font-size:20px; font-weight:700; color:var(--stamp);" id="totalLogsCount">0</p>
-          </div>
-          <div style="padding:12px; background:var(--paper-2); border-radius:8px; margin-bottom:12px;">
-            <p style="margin:0; font-size:12px; color:var(--ink-soft);">Hoje</p>
-            <p style="margin:4px 0 0; font-size:20px; font-weight:700; color:#378ADD;" id="todayLogsCount">0</p>
-          </div>
-          <div style="padding:12px; background:var(--paper-2); border-radius:8px;">
-            <p style="margin:0; font-size:12px; color:var(--ink-soft);">Usuários Ativos</p>
-            <p style="margin:4px 0 0; font-size:20px; font-weight:700; color:#2F6B4F;" id="activeUsersCount">0</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Logs Container -->
-      <div class="admin-card">
-        <h3>📝 Registro de Atividades</h3>
-        <div class="logs-container" id="logsContainer">
-          <!-- Preenchido por JavaScript -->
-        </div>
-      </div>
-    </div>
-      <div class="eyebrow">Gerador QR Code</div>
-      <h1>Criar QR Code Personalizado</h1>
-      <p class="desc">Gere códigos QR para links, contatos, WiFi, eventos e muito mais, totalmente personalizados.</p>
-
-      <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:24px; margin-bottom:24px;">
-        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:16px;">Tipo de Código QR</div>
-        <div class="qr-type-grid">
-          <button class="qr-type-btn active" data-qr-type="url">🔗 Link</button>
-          <button class="qr-type-btn" data-qr-type="text">📝 Texto</button>
-          <button class="qr-type-btn" data-qr-type="email">✉️ E-mail</button>
-          <button class="qr-type-btn" data-qr-type="phone">☎️ Telefone</button>
-          <button class="qr-type-btn" data-qr-type="sms">💬 SMS</button>
-          <button class="qr-type-btn" data-qr-type="whatsapp">💭 WhatsApp</button>
-          <button class="qr-type-btn" data-qr-type="wifi">📶 WiFi</button>
-          <button class="qr-type-btn" data-qr-type="vcard">👤 vCard</button>
-          <button class="qr-type-btn" data-qr-type="event">📅 Evento</button>
-        </div>
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-        <div>
-          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:24px; margin-bottom:24px;">
-            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:16px;">Preencha os dados</div>
-            <form id="qrDataForm">
-              <!-- URL Form -->
-              <div id="qr-url-form">
-                <div class="form-group"><label>URL do site *</label><input type="url" id="qrUrlInput" placeholder="https://exemplo.com"></div>
-              </div>
-              <!-- Text Form -->
-              <div id="qr-text-form" style="display:none;">
-                <div class="form-group"><label>Seu texto *</label><textarea id="qrTextInput" placeholder="Digite seu texto aqui" rows="4"></textarea></div>
-              </div>
-              <!-- Email Form -->
-              <div id="qr-email-form" style="display:none;">
-                <div class="form-group"><label>E-mail *</label><input type="email" id="qrEmailInput" placeholder="seu@email.com"></div>
-                <div class="form-group"><label>Assunto</label><input type="text" id="qrSubjectInput" placeholder="Assunto"></div>
-                <div class="form-group"><label>Mensagem</label><textarea id="qrMessageInput" placeholder="Mensagem" rows="3"></textarea></div>
-              </div>
-              <!-- Phone Form -->
-              <div id="qr-phone-form" style="display:none;">
-                <div class="form-group"><label>Número *</label><input type="tel" id="qrPhoneInput" placeholder="+55 11 99999-9999"></div>
-              </div>
-              <!-- SMS Form -->
-              <div id="qr-sms-form" style="display:none;">
-                <div class="form-group"><label>Número *</label><input type="tel" id="qrSmsPhoneInput" placeholder="+55 11 99999-9999"></div>
-                <div class="form-group"><label>Mensagem</label><textarea id="qrSmsMessageInput" placeholder="Mensagem" rows="3"></textarea></div>
-              </div>
-              <!-- WhatsApp Form -->
-              <div id="qr-whatsapp-form" style="display:none;">
-                <div class="form-group"><label>Número *</label><input type="tel" id="qrWhatsappInput" placeholder="+55 11 99999-9999"></div>
-                <div class="form-group"><label>Mensagem</label><textarea id="qrWhatsappMessageInput" placeholder="Mensagem" rows="3"></textarea></div>
-              </div>
-              <!-- WiFi Form -->
-              <div id="qr-wifi-form" style="display:none;">
-                <div class="form-group"><label>Nome da rede (SSID) *</label><input type="text" id="qrWifiSSID" placeholder="Nome WiFi"></div>
-                <div class="form-group"><label>Tipo de segurança</label><select id="qrWifiSecurity"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">Sem senha</option></select></div>
-                <div class="form-group"><label>Senha</label><input type="text" id="qrWifiPassword" placeholder="Senha WiFi"></div>
-              </div>
-              <!-- vCard Form -->
-              <div id="qr-vcard-form" style="display:none;">
-                <div class="form-group"><label>Nome *</label><input type="text" id="qrVcardName" placeholder="Seu nome"></div>
-                <div class="form-group"><label>E-mail</label><input type="email" id="qrVcardEmail" placeholder="seu@email.com"></div>
-                <div class="form-group"><label>Telefone</label><input type="tel" id="qrVcardPhone" placeholder="+55 11 99999-9999"></div>
-                <div class="form-group"><label>Empresa</label><input type="text" id="qrVcardCompany" placeholder="Empresa"></div>
-                <div class="form-group"><label>Cargo</label><input type="text" id="qrVcardJob" placeholder="Cargo"></div>
-              </div>
-              <!-- Event Form -->
-              <div id="qr-event-form" style="display:none;">
-                <div class="form-group"><label>Título *</label><input type="text" id="qrEventTitle" placeholder="Nome do evento"></div>
-                <div class="form-group"><label>Data e Hora *</label><input type="datetime-local" id="qrEventDate"></div>
-                <div class="form-group"><label>Local</label><input type="text" id="qrEventLocation" placeholder="Local do evento"></div>
-                <div class="form-group"><label>Descrição</label><textarea id="qrEventDescription" placeholder="Descrição" rows="3"></textarea></div>
-              </div>
-            </form>
-          </div>
-
-          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:24px;">
-            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:16px;">Personalize o design</div>
-            <div style="margin-bottom:20px;"><label style="font-size:12px; font-weight:600; display:block; margin-bottom:12px;">Moldura</label>
-              <div class="qr-frame-options">
-                <div class="qr-frame-option active" data-qr-frame="none">Nenhuma</div>
-                <div class="qr-frame-option" data-qr-frame="scan">SCAN ME</div>
-                <div class="qr-frame-option" data-qr-frame="qr">QR CODE</div>
-              </div>
-            </div>
-            <div class="qr-design-section">
-              <div class="form-group"><label>Cor do QR</label><div class="qr-color-input"><input type="color" id="qrColorQR" value="#000000"><span style="font-size:12px; color:var(--ink-soft);" id="qrColorQRLabel">#000000</span></div></div>
-              <div class="form-group"><label>Cor de fundo</label><div class="qr-color-input"><input type="color" id="qrColorBG" value="#ffffff"><span style="font-size:12px; color:var(--ink-soft);" id="qrColorBGLabel">#ffffff</span></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:24px;">
-            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:16px;">Visualização</div>
-            <div class="qr-preview-container">
-              <div id="qrPreview" style="display:none;">
-                <canvas id="qrCanvas"></canvas>
-              </div>
-              <div id="qrPlaceholder" class="qr-placeholder">👆 Seu QR Code aparecerá aqui</div>
-            </div>
-            <button class="primary" id="qrDownloadBtn" disabled style="margin-top:16px; width:100%;">⬇️ Baixar QR Code (PNG)</button>
-            <div class="note-box" style="margin-top:16px;">💡 <strong>Dica:</strong> Teste escaneando seu QR Code com um smartphone!</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
-
-<script>
-const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-/* MENU NAVIGATION */
-document.querySelectorAll('.menu-item').forEach(item => {
-  item.addEventListener('click', function() {
-    const panelId = this.dataset.panel;
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
-    document.getElementById(panelId).classList.add('show');
-    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-    this.classList.add('active');
-    window.scrollTo(0, 0);
-  });
-});
-
-document.querySelectorAll('.home-card').forEach(card => {
-  card.addEventListener('click', function() {
-    const panelId = this.dataset.panel;
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
-    document.getElementById(panelId).classList.add('show');
-    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-    const menuItem = document.querySelector(`[data-panel="${panelId}"]`);
-    if(menuItem) menuItem.classList.add('active');
-    window.scrollTo(0, 0);
-  });
-});
-
-/* HELPERS */
-function fmtSize(bytes){
-  if(bytes < 1024) return bytes + ' B';
-  if(bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' KB';
-  return (bytes/(1024*1024)).toFixed(1) + ' MB';
-}
-function q(root, role){ return root.querySelector(`[data-role="${role}"]`); }
-function qa(root, role){ return root.querySelectorAll(`[data-role="${role}"]`); }
-
-function parseRangeSequence(str, maxPage){
-  const out = [];
-  const parts = str.split(',').map(s => s.trim()).filter(Boolean);
-  for(const part of parts){
-    if(part.includes('-')){
-      const [a,b] = part.split('-').map(s => parseInt(s.trim()));
-      if(!a || !b || a<1 || b>maxPage || a>b) throw new Error(`Intervalo inválido: "${part}"`);
-      for(let i=a;i<=b;i++) out.push(i-1);
-    }else{
-      const n = parseInt(part);
-      if(!n || n<1 || n>maxPage) throw new Error(`Página inválida: "${part}"`);
-      out.push(n-1);
-    }
-  }
-  if(out.length===0) throw new Error('Informe ao menos uma página.');
-  return out;
-}
-
-function setupDropzone(panel, {multiple, accept, onFiles}){
-  const dz = q(panel, 'dropzone');
-  const input = q(panel, 'input');
-  dz.addEventListener('click', () => input.click());
-  input.addEventListener('change', e => { if(e.target.files.length) onFiles(e.target.files); input.value=''; });
-  ['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, e => { e.preventDefault(); dz.classList.add('drag'); }));
-  ['dragleave','drop'].forEach(evt => dz.addEventListener(evt, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-  dz.addEventListener('drop', e => { if(e.dataTransfer.files.length) onFiles(e.dataTransfer.files); });
-}
-
-function runStatus(panel, {doneFilename}){
-  const status = q(panel,'status');
-  const statusText = q(panel,'statusText');
-  const result = q(panel,'result');
-  const progress = q(panel,'progress');
-  return {
-    setProgress(pct){ if(progress){ progress.classList.add('show'); q(panel,'progressFill').style.width = pct+'%'; } },
-    setText(t){ const el = q(panel,'statusText'); if(el) el.textContent = t; },
-    async run(fn){
-      status.classList.add('show'); result.classList.remove('show');
-      if(progress){ progress.classList.add('show'); q(panel,'progressFill').style.width='0%'; }
-      try{
-        const {blob, sub, filename} = await fn();
-        const url = URL.createObjectURL(blob);
-        q(panel,'download').href = url;
-        q(panel,'download').download = filename || doneFilename;
-        q(panel,'rsub').textContent = sub;
-        q(panel,'rtitle').textContent = '✓ Concluído com sucesso';
-        q(panel,'rtitle').style.color = '';
-        result.classList.add('show');
-      }catch(err){
-        console.error(err);
-        q(panel,'rsub').textContent = err.message || 'Não foi possível processar o arquivo.';
-        q(panel,'rtitle').textContent = '✕ Ocorreu um erro';
-        q(panel,'rtitle').style.color = '#B23A2E';
-        result.classList.add('show');
-      }finally{
-        status.classList.remove('show');
-        if(progress) progress.classList.remove('show');
+      // PDF Intelligence
+      {
+        id: 'resumir-ia',
+        icon: '🤖',
+        name: 'Resumir com IA',
+        description: 'Resuma PDFs automaticamente',
+        category: 'ia',
+        implemented: false,
+        badge: 'Novo'
+      },
+      {
+        id: 'traduzir-pdf',
+        icon: '🌍',
+        name: 'Traduzir PDF',
+        description: 'Traduza PDFs para outros idiomas',
+        category: 'ia',
+        implemented: false,
+        badge: 'Novo'
       }
-    }
-  };
-}
-
-function basicUploadPanel(panel, accept){
-  let currentFile = null;
-  const fileArea = q(panel,'fileArea'), dropzone = q(panel,'dropzone');
-  function load(file){
-    currentFile = file;
-    q(panel,'fname').textContent = file.name;
-    q(panel,'fmeta').textContent = fmtSize(file.size);
-    dropzone.style.display='none'; fileArea.style.display='block';
-  }
-  function reset(){
-    currentFile=null; dropzone.style.display='block'; fileArea.style.display='none';
-    q(panel,'input').value=''; if(q(panel,'result')) q(panel,'result').classList.remove('show');
-  }
-  setupDropzone(panel, {onFiles: fl => load(fl[0])});
-  q(panel,'remove').addEventListener('click', reset);
-  q(panel,'clear').addEventListener('click', reset);
-  return { getFile: () => currentFile };
-}
-
-/* PDF Text extraction */
-async function getPageRows(page){
-  const content = await page.getTextContent();
-  const rows = [];
-  content.items.forEach(item => {
-    const y = item.transform[5];
-    let row = rows.find(r => Math.abs(r.y - y) < 3);
-    if(!row){ row = { y, items: [] }; rows.push(row); }
-    row.items.push(item);
-  });
-  rows.sort((a,b) => b.y - a.y);
-  rows.forEach(r => r.items.sort((a,b) => a.transform[4]-b.transform[4]));
-  return rows;
-}
-function rowToLine(row){ return row.items.map(i=>i.str).join(''); }
-function rowToColumns(row){
-  const cols = []; let current=''; let lastEndX=null;
-  row.items.forEach(item => {
-    const x = item.transform[4];
-    if(lastEndX!==null && (x-lastEndX) > 9){ cols.push(current.trim()); current=''; }
-    current += item.str;
-    lastEndX = x + (item.width||0);
-  });
-  if(current.trim()) cols.push(current.trim());
-  return cols.length ? cols : [''];
-}
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-/* ============ PDF TOOLS ============ */
-/* MERGE */
-(function(){
-  const panel = document.getElementById('panel-merge');
-  const list = q(panel,'list'), summary = q(panel,'summary'), actions = q(panel,'actions'), runBtn = q(panel,'run'), clearBtn = q(panel,'clear');
-  let files = []; let idc = 0; let dragIdx = null;
-  const status = runStatus(panel, {doneFilename:'documento-unido.pdf'});
-
-  async function addFiles(fl){
-    for(const f of Array.from(fl)){
-      if(!(f.type==='application/pdf' || f.name.toLowerCase().endsWith('.pdf'))) continue;
-      const entry = { id: idc++, file:f, pageCount:null };
-      files.push(entry); render();
-      try{
-        const buf = await f.arrayBuffer();
-        const doc = await PDFDocument.load(buf, {ignoreEncryption:true});
-        entry.pageCount = doc.getPageCount();
-      }catch(e){ entry.pageCount = '?'; entry.error = true; }
-      render();
-    }
-  }
-
-  function render(){
-    list.innerHTML = '';
-    if(files.length===0){ actions.style.display='none'; summary.style.display='none'; return; }
-    actions.style.display='flex'; summary.style.display='block';
-    files.forEach((entry, idx) => {
-      const card = document.createElement('div');
-      card.className='file-card'; card.draggable=true;
-      const pages = entry.pageCount===null ? '…' : (entry.error ? 'erro ao ler' : entry.pageCount+(entry.pageCount===1?' pág.':' págs.'));
-      card.innerHTML = `<span class="grip">⠿</span><span class="num">${idx+1}</span><div class="badge">PDF</div><div class="info"><div class="fname">${entry.file.name}</div><div class="fmeta">${fmtSize(entry.file.size)} · ${pages}</div></div><div style="display:flex;gap:4px;"><button class="icon-btn up" ${idx===0?'disabled':''}>↑</button><button class="icon-btn down" ${idx===files.length-1?'disabled':''}>↓</button><button class="icon-btn danger remove">✕</button></div>`;
-      card.querySelector('.up').addEventListener('click', () => { [files[idx-1],files[idx]]=[files[idx],files[idx-1]]; render(); });
-      card.querySelector('.down').addEventListener('click', () => { [files[idx+1],files[idx]]=[files[idx],files[idx+1]]; render(); });
-      card.querySelector('.remove').addEventListener('click', () => { files.splice(idx,1); render(); });
-      card.addEventListener('dragstart', () => { card.classList.add('dragging'); dragIdx = idx; });
-      card.addEventListener('dragend', () => card.classList.remove('dragging'));
-      card.addEventListener('dragover', e => e.preventDefault());
-      card.addEventListener('drop', e => { e.preventDefault(); if(dragIdx!==null && dragIdx!==idx){ const [it]=files.splice(dragIdx,1); files.splice(idx,0,it); render(); } dragIdx=null; });
-      list.appendChild(card);
-    });
-    const total = files.reduce((s,f)=> s+(typeof f.pageCount==='number'?f.pageCount:0),0);
-    summary.textContent = `${files.length} arquivo${files.length>1?'s':''} · ${total} página${total!==1?'s':''} no total`;
-    runBtn.disabled = !files.every(f=>f.pageCount!==null) || files.length<1;
-  }
-
-  setupDropzone(panel, {multiple:true, onFiles: addFiles});
-  clearBtn.addEventListener('click', () => { files=[]; render(); q(panel,'result').classList.remove('show'); });
-  runBtn.addEventListener('click', () => status.run(async () => {
-    const merged = await PDFDocument.create();
-    for(const entry of files){
-      const buf = await entry.file.arrayBuffer();
-      const src = await PDFDocument.load(buf, {ignoreEncryption:true});
-      const pages = await merged.copyPages(src, src.getPageIndices());
-      pages.forEach(p => merged.addPage(p));
-    }
-    const bytes = await merged.save();
-    const blob = new Blob([bytes], {type:'application/pdf'});
-    return { blob, sub:`${files.length} arquivos combinados · ${merged.getPageCount()} páginas · ${fmtSize(blob.size)}` };
-  }));
-})();
-
-/* SPLIT */
-(function(){
-  const panel = document.getElementById('panel-split');
-  const fileArea = q(panel,'fileArea'), dropzone = q(panel,'dropzone');
-  const rangePanel = q(panel,'rangePanel'), addRangeBtn = q(panel,'addRange'), everyHint = q(panel,'everyHint');
-  const runBtn = q(panel,'run'), clearBtn = q(panel,'clear'), removeBtn = q(panel,'remove');
-  let currentFile=null, pageCount=0, mode='ranges', rows=[], ridc=0;
-  const status = runStatus(panel, {doneFilename:'paginas-divididas.zip'});
-
-  async function loadFile(file){
-    currentFile = file;
-    q(panel,'fname').textContent = file.name;
-    q(panel,'fmeta').textContent = fmtSize(file.size)+' · lendo…';
-    dropzone.style.display='none'; fileArea.style.display='block';
-    try{
-      const buf = await file.arrayBuffer();
-      const doc = await PDFDocument.load(buf, {ignoreEncryption:true});
-      pageCount = doc.getPageCount();
-      q(panel,'fmeta').textContent = `${fmtSize(file.size)} · ${pageCount} página${pageCount!==1?'s':''}`;
-      rows = [{id:ridc++, from:1, to:pageCount}];
-      renderRanges(); updateBtn();
-    }catch(e){ q(panel,'fmeta').textContent='Não foi possível ler este PDF.'; }
-  }
-  function reset(){
-    currentFile=null; pageCount=0; dropzone.style.display='block'; fileArea.style.display='none';
-    q(panel,'input').value=''; q(panel,'result').classList.remove('show'); rows=[];
-  }
-  setupDropzone(panel,{onFiles: fl => loadFile(fl[0])});
-  removeBtn.addEventListener('click', reset);
-  clearBtn.addEventListener('click', reset);
-
-  panel.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      panel.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active'); mode = btn.dataset.mode;
-      rangePanel.style.display = mode==='ranges' ? 'block':'none';
-      addRangeBtn.style.display = mode==='ranges' ? 'inline-block':'none';
-      everyHint.style.display = mode==='every' ? 'block':'none';
-      updateBtn();
-    });
-  });
-
-  function renderRanges(){
-    rangePanel.innerHTML='';
-    rows.forEach((row, idx) => {
-      const div = document.createElement('div'); div.className='field-row';
-      div.innerHTML = `<span>De</span><input type="number" min="1" max="${pageCount}" value="${row.from}" style="width:70px;" class="from"><span>até</span><input type="number" min="1" max="${pageCount}" value="${row.to??''}" placeholder="${pageCount}" style="width:70px;" class="to"><button class="icon-btn danger" style="margin-left:auto;" ${rows.length===1?'disabled':''}>✕</button>`;
-      div.querySelector('.from').addEventListener('input', e => { row.from = parseInt(e.target.value)||1; updateBtn(); });
-      div.querySelector('.to').addEventListener('input', e => { row.to = e.target.value?parseInt(e.target.value):null; updateBtn(); });
-      div.querySelector('button').addEventListener('click', () => { rows.splice(idx,1); renderRanges(); updateBtn(); });
-      rangePanel.appendChild(div);
-    });
-  }
-  addRangeBtn.addEventListener('click', () => {
-    const last = rows[rows.length-1];
-    const nextFrom = last && last.to ? last.to+1 : (last? last.from+1:1);
-    rows.push({id:ridc++, from:Math.min(nextFrom,pageCount), to:pageCount});
-    renderRanges(); updateBtn();
-  });
-  function updateBtn(){
-    if(!currentFile){ runBtn.disabled=true; return; }
-    if(mode==='every'){ runBtn.disabled=false; return; }
-    const valid = rows.every(r => r.from>=1 && r.from<=pageCount && (r.to===null || (r.to>=r.from && r.to<=pageCount)));
-    runBtn.disabled = !valid || rows.length===0;
-  }
-
-  runBtn.addEventListener('click', () => status.run(async () => {
-    const buf = await currentFile.arrayBuffer();
-    const src = await PDFDocument.load(buf, {ignoreEncryption:true});
-    const zip = new JSZip();
-    const base = currentFile.name.replace(/\.pdf$/i,'');
-    let count=0;
-    if(mode==='every'){
-      for(let i=0;i<pageCount;i++){
-        const out = await PDFDocument.create();
-        const [pg] = await out.copyPages(src,[i]);
-        out.addPage(pg);
-        zip.file(`${base}-pagina-${i+1}.pdf`, await out.save());
-        count++;
-      }
-    }else{
-      let idx=1;
-      for(const row of rows){
-        const from=row.from, to=row.to??pageCount;
-        const indices=[]; for(let p=from;p<=to;p++) indices.push(p-1);
-        const out = await PDFDocument.create();
-        const pages = await out.copyPages(src, indices);
-        pages.forEach(p=>out.addPage(p));
-        zip.file(`${base}-parte-${idx}.pdf`, await out.save());
-        idx++; count++;
-      }
-    }
-    const blob = await zip.generateAsync({type:'blob'});
-    return { blob, sub:`${count} arquivo${count!==1?'s':''} PDF · ${fmtSize(blob.size)} no total` };
-  }));
-})();
-
-/* ROTATE, DELETE, EXTRACT, ORGANIZE - Implementação similar */
-/* ... (Incluindo todos os outros painéis de PDF, OCR e conversões) ... */
-
-/* Para brevidade, vou incluir apenas a estrutura de QR Code */
-
-/* ============ QR CODE GENERATOR ============ */
-(function(){
-  let currentType = 'url';
-  let currentFrame = 'none';
-
-  document.querySelectorAll('.qr-type-btn').forEach(btn => {
-    btn.addEventListener('click', function(){
-      document.querySelectorAll('.qr-type-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      currentType = this.dataset.qrType;
-      updateQrFormVisibility();
-      generateQr();
-    });
-  });
-
-  document.querySelectorAll('.qr-frame-option').forEach(btn => {
-    btn.addEventListener('click', function(){
-      document.querySelectorAll('.qr-frame-option').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      currentFrame = this.dataset.qrFrame;
-      generateQr();
-    });
-  });
-
-  document.getElementById('qrColorQR').addEventListener('change', function(){
-    document.getElementById('qrColorQRLabel').textContent = this.value.toUpperCase();
-    generateQr();
-  });
-
-  document.getElementById('qrColorBG').addEventListener('change', function(){
-    document.getElementById('qrColorBGLabel').textContent = this.value.toUpperCase();
-    generateQr();
-  });
-
-  document.querySelectorAll('#qrDataForm input, #qrDataForm textarea, #qrDataForm select').forEach(input => {
-    input.addEventListener('input', generateQr);
-    input.addEventListener('change', generateQr);
-  });
-
-  function updateQrFormVisibility(){
-    document.querySelectorAll('[id^="qr-"][id$="-form"]').forEach(form => form.style.display = 'none');
-    const formId = 'qr-' + currentType + '-form';
-    const form = document.getElementById(formId);
-    if(form) form.style.display = 'block';
-  }
-
-  function getQrData(){
-    switch(currentType){
-      case 'url':
-        return document.getElementById('qrUrlInput').value || '';
-      case 'text':
-        return document.getElementById('qrTextInput').value || '';
-      case 'email':
-        let email = document.getElementById('qrEmailInput').value;
-        let subject = document.getElementById('qrSubjectInput').value;
-        let message = document.getElementById('qrMessageInput').value;
-        if(!email) return '';
-        let emailQR = `mailto:${email}`;
-        if(subject) emailQR += `?subject=${encodeURIComponent(subject)}`;
-        if(message) emailQR += `${subject ? '&' : '?'}body=${encodeURIComponent(message)}`;
-        return emailQR;
-      case 'phone':
-        return document.getElementById('qrPhoneInput').value ? `tel:${document.getElementById('qrPhoneInput').value}` : '';
-      case 'sms':
-        let smsPhone = document.getElementById('qrSmsPhoneInput').value;
-        let smsMsg = document.getElementById('qrSmsMessageInput').value;
-        if(!smsPhone) return '';
-        let smsQR = `sms:${smsPhone}`;
-        if(smsMsg) smsQR += `?body=${encodeURIComponent(smsMsg)}`;
-        return smsQR;
-      case 'whatsapp':
-        let waPhone = document.getElementById('qrWhatsappInput').value;
-        let waMsg = document.getElementById('qrWhatsappMessageInput').value;
-        if(!waPhone) return '';
-        waPhone = waPhone.replace(/\D/g, '');
-        let waQR = `https://wa.me/${waPhone}`;
-        if(waMsg) waQR += `?text=${encodeURIComponent(waMsg)}`;
-        return waQR;
-      case 'wifi':
-        let ssid = document.getElementById('qrWifiSSID').value;
-        let security = document.getElementById('qrWifiSecurity').value;
-        let password = document.getElementById('qrWifiPassword').value;
-        if(!ssid) return '';
-        if(security === 'nopass') return `WIFI:T:nopass;S:${ssid};;`;
-        return `WIFI:T:${security};S:${ssid};P:${password};;`;
-      case 'vcard':
-        let vcardName = document.getElementById('qrVcardName').value;
-        if(!vcardName) return '';
-        let vcardData = 'BEGIN:VCARD\nVERSION:3.0\n';
-        vcardData += `FN:${vcardName}\n`;
-        const vcardEmail = document.getElementById('qrVcardEmail').value;
-        if(vcardEmail) vcardData += `EMAIL:${vcardEmail}\n`;
-        const vcardPhone = document.getElementById('qrVcardPhone').value;
-        if(vcardPhone) vcardData += `TEL:${vcardPhone}\n`;
-        const vcardCompany = document.getElementById('qrVcardCompany').value;
-        if(vcardCompany) vcardData += `ORG:${vcardCompany}\n`;
-        const vcardJob = document.getElementById('qrVcardJob').value;
-        if(vcardJob) vcardData += `TITLE:${vcardJob}\n`;
-        vcardData += 'END:VCARD';
-        return vcardData;
-      case 'event':
-        let eventTitle = document.getElementById('qrEventTitle').value;
-        if(!eventTitle) return '';
-        let eventData = 'BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\n';
-        eventData += `SUMMARY:${eventTitle}\n`;
-        const eventDate = document.getElementById('qrEventDate').value;
-        if(eventDate){
-          let dateParts = eventDate.replace(/[-:]/g, '').replace('T', 'T');
-          eventData += `DTSTART:${dateParts}\n`;
-        }
-        const eventLocation = document.getElementById('qrEventLocation').value;
-        if(eventLocation) eventData += `LOCATION:${eventLocation}\n`;
-        const eventDesc = document.getElementById('qrEventDescription').value;
-        if(eventDesc) eventData += `DESCRIPTION:${eventDesc}\n`;
-        eventData += 'END:VEVENT\nEND:VCALENDAR';
-        return eventData;
-      default:
-        return '';
-    }
-  }
-
-  function generateQr(){
-    const data = getQrData();
-    
-    if(!data){
-      document.getElementById('qrPlaceholder').style.display = 'block';
-      document.getElementById('qrPreview').style.display = 'none';
-      document.getElementById('qrDownloadBtn').disabled = true;
-      return;
-    }
-
-    const previewDiv = document.getElementById('qrPreview');
-    previewDiv.innerHTML = '<canvas id="qrCanvas"></canvas>';
-    
-    const canvas = document.getElementById('qrCanvas');
-    const colorQR = document.getElementById('qrColorQR').value;
-    const colorBG = document.getElementById('qrColorBG').value;
-
-    try{
-      new QRCode(canvas, {
-        text: data,
-        width: 280,
-        height: 280,
-        colorDark: colorQR,
-        colorLight: colorBG,
-        correctLevel: QRCode.CorrectLevel.H
-      });
-
-      document.getElementById('qrPlaceholder').style.display = 'none';
-      previewDiv.style.display = 'block';
-      document.getElementById('qrDownloadBtn').disabled = false;
-    }catch(e){
-      console.error('Erro ao gerar QR Code:', e);
-    }
-  }
-
-  document.getElementById('qrDownloadBtn').addEventListener('click', function(){
-    const canvas = document.getElementById('qrCanvas');
-    if(!canvas) return;
-    const link = document.createElement('a');
-    link.download = `qr-code-${new Date().getTime()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  });
-
-  updateQrFormVisibility();
-  generateQr();
-})();
-
-/* ============ ADMIN SYSTEM ============ */
-class TudisAdmin {
-  constructor() {
-    this.currentUser = null;
-    this.users = [];
-    this.logs = [];
-    this.config = {
-      systemName: 'Tudis',
-      systemDesc: 'Ferramentas de PDF, OCR e QR Code',
-      version: '1.0.0',
-      developer: 'Desenvolvedor',
-      colorStamp: '#B23A2E',
-      colorAccent: '#2F6B4F',
-      theme: 'light',
-      logo: null
-    };
-    this.init();
-  }
-
-  init() {
-    this.loadFromStorage();
-    this.checkAuth();
-    this.setupEventListeners();
-    this.updateUI();
-  }
-
-  loadFromStorage() {
-    const stored = localStorage.getItem('tudis_admin');
-    if (stored) {
-      const data = JSON.parse(stored);
-      this.users = data.users || [];
-      this.config = data.config || this.config;
-      this.logs = data.logs || [];
-    } else {
-      this.setupDefaults();
-      this.saveToStorage();
-    }
-  }
-
-  setupDefaults() {
-    this.users = [
-      { id: 1, username: 'admin', email: 'admin@tudis.com', password: this.hashPassword('admin'), role: 'admin', status: 'ativo', createdAt: new Date().toISOString() }
     ];
-  }
 
-  hashPassword(pass) {
-    return btoa(pass);
-  }
+    // Inicializar UI
+    function initializeUI() {
+      renderTools('todas');
+      setupTabs();
+    }
 
-  saveToStorage() {
-    const data = { users: this.users, config: this.config, logs: this.logs };
-    localStorage.setItem('tudis_admin', JSON.stringify(data));
-  }
+    function setupTabs() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const category = tab.dataset.category;
+          renderTools(category);
+        });
+      });
+    }
 
-  checkAuth() {
-    const authToken = sessionStorage.getItem('tudis_token');
-    if (authToken) {
-      const user = this.users.find(u => u.id == authToken);
-      if (user) {
-        this.currentUser = user;
-        document.getElementById('loginModal').style.display = 'none';
-        const adminSection = document.querySelector('.menu-section:last-child');
-        if(adminSection) adminSection.style.display = 'block';
+    function renderTools(category) {
+      const grid = document.getElementById('tools-grid');
+      const noResults = document.getElementById('no-results');
+      const categoryTitle = document.getElementById('category-title');
+
+      grid.innerHTML = '';
+
+      const filtered = category === 'todas' 
+        ? tools 
+        : tools.filter(tool => tool.category === category);
+
+      if (filtered.length === 0) {
+        noResults.style.display = 'block';
+        categoryTitle.textContent = 'Nenhuma ferramenta encontrada';
         return;
       }
-    }
-    document.getElementById('loginModal').style.display = 'flex';
-    const adminSection = document.querySelector('.menu-section:last-child');
-    if(adminSection) adminSection.style.display = 'none';
-  }
 
-  setupEventListeners() {
-    const loginBtn = document.getElementById('loginBtn');
-    const demoLoginBtn = document.getElementById('demoLoginBtn');
-    const loginUser = document.getElementById('loginUser');
-    const loginPass = document.getElementById('loginPass');
-    
-    if(loginBtn) loginBtn.addEventListener('click', () => this.handleLogin());
-    if(demoLoginBtn) demoLoginBtn.addEventListener('click', () => this.demoLogin());
-    if(loginUser) loginUser.addEventListener('keypress', e => { if(e.key==='Enter') this.handleLogin(); });
-    if(loginPass) loginPass.addEventListener('keypress', e => { if(e.key==='Enter') this.handleLogin(); });
-
-    const logoutBtn = document.getElementById('logout-btn');
-    if(logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
-
-    const saveConfigBtn = document.getElementById('saveConfigBtn');
-    if(saveConfigBtn) saveConfigBtn.addEventListener('click', () => this.saveConfig());
-    
-    const resetConfigBtn = document.getElementById('resetConfigBtn');
-    if(resetConfigBtn) resetConfigBtn.addEventListener('click', () => this.resetConfig());
-    
-    const addUserBtn = document.getElementById('addUserBtn');
-    if(addUserBtn) addUserBtn.addEventListener('click', () => this.addUser());
-    
-    const applyFilterBtn = document.getElementById('applyFilterBtn');
-    if(applyFilterBtn) applyFilterBtn.addEventListener('click', () => this.filterLogs());
-    
-    const clearLogsBtn = document.getElementById('clearLogsBtn');
-    if(clearLogsBtn) clearLogsBtn.addEventListener('click', () => this.clearLogs());
-
-    const colorStamp = document.getElementById('configColorStamp');
-    const colorStampHex = document.getElementById('configColorStampHex');
-    if(colorStamp) colorStamp.addEventListener('change', e => { if(colorStampHex) colorStampHex.value = e.target.value; });
-    if(colorStampHex) colorStampHex.addEventListener('change', e => { if(colorStamp) colorStamp.value = e.target.value; });
-
-    const configLogoUpload = document.getElementById('configLogoUpload');
-    if(configLogoUpload) configLogoUpload.addEventListener('change', e => this.handleLogoUpload(e));
-    
-    const clearLogoBtn = document.getElementById('clearLogoBtn');
-    if(clearLogoBtn) clearLogoBtn.addEventListener('click', () => this.clearLogo());
-  }
-
-  handleLogin() {
-    const userEl = document.getElementById('loginUser');
-    const passEl = document.getElementById('loginPass');
-    if(!userEl || !passEl) return;
-    
-    const user = userEl.value;
-    const pass = passEl.value;
-    const foundUser = this.users.find(u => u.username === user && this.hashPassword(pass) === u.password && u.status === 'ativo');
-    
-    if (foundUser) {
-      sessionStorage.setItem('tudis_token', foundUser.id);
-      this.currentUser = foundUser;
-      this.addLog('login', `${foundUser.username} fez login`);
-      this.checkAuth();
-      this.updateUI();
-    } else {
-      alert('Usuário ou senha inválidos!');
-    }
-  }
-
-  demoLogin() {
-    const userEl = document.getElementById('loginUser');
-    const passEl = document.getElementById('loginPass');
-    if(userEl) userEl.value = 'admin';
-    if(passEl) passEl.value = 'admin';
-    this.handleLogin();
-  }
-
-  logout() {
-    this.addLog('logout', `${this.currentUser.username} fez logout`);
-    sessionStorage.removeItem('tudis_token');
-    this.currentUser = null;
-    this.checkAuth();
-    this.updateUI();
-  }
-
-  addUser() {
-    const nameEl = document.getElementById('newUserName');
-    const emailEl = document.getElementById('newUserEmail');
-    const passEl = document.getElementById('newUserPass');
-    const roleEl = document.getElementById('newUserRole');
-    const statusEl = document.getElementById('newUserStatus');
-    
-    if(!nameEl || !emailEl || !passEl || !roleEl || !statusEl) return;
-
-    const name = nameEl.value.trim();
-    const email = emailEl.value.trim();
-    const pass = passEl.value;
-    const role = roleEl.value;
-    const status = statusEl.value;
-
-    if (!name || !email || !pass) {
-      alert('Preencha todos os campos!');
-      return;
-    }
-    if (pass.length < 6) {
-      alert('Senha deve ter pelo menos 6 caracteres!');
-      return;
-    }
-    if (this.users.find(u => u.username === name)) {
-      alert('Este usuário já existe!');
-      return;
-    }
-
-    const newUser = {
-      id: Math.max(...this.users.map(u => u.id), 0) + 1,
-      username: name,
-      email: email,
-      password: this.hashPassword(pass),
-      role: role,
-      status: status,
-      createdAt: new Date().toISOString()
-    };
-
-    this.users.push(newUser);
-    this.saveToStorage();
-    this.addLog('user_manage', `Novo usuário ${name} criado com perfil ${role}`);
-    this.updateUsersTable();
-    nameEl.value = '';
-    emailEl.value = '';
-    passEl.value = '';
-    alert('Usuário criado com sucesso!');
-  }
-
-  deleteUser(userId) {
-    if (userId === this.currentUser.id) {
-      alert('Você não pode deletar sua própria conta!');
-      return;
-    }
-    if (confirm('Tem certeza que deseja deletar este usuário?')) {
-      const user = this.users.find(u => u.id === userId);
-      this.users = this.users.filter(u => u.id !== userId);
-      this.saveToStorage();
-      this.addLog('user_manage', `Usuário ${user.username} deletado`);
-      this.updateUsersTable();
-    }
-  }
-
-  toggleUserStatus(userId) {
-    const user = this.users.find(u => u.id === userId);
-    if (user) {
-      user.status = user.status === 'ativo' ? 'inativo' : 'ativo';
-      this.saveToStorage();
-      this.addLog('user_manage', `Status do usuário ${user.username} alterado para ${user.status}`);
-      this.updateUsersTable();
-    }
-  }
-
-  updateUsersTable() {
-    const tbody = document.getElementById('usersTableBody');
-    if(!tbody) return;
-    
-    tbody.innerHTML = this.users.map(u => `
-      <tr>
-        <td><strong>${u.username}</strong> ${u.id === this.currentUser?.id ? '(você)' : ''}</td>
-        <td>${u.email}</td>
-        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
-        <td><span class="status-badge status-${u.status}">${u.status}</span></td>
-        <td>${new Date(u.createdAt).toLocaleDateString('pt-BR')}</td>
-        <td style="display:flex; gap:6px;">
-          <button class="icon-btn" onclick="tudisAdmin.toggleUserStatus(${u.id})" title="Alternar status">🔄</button>
-          <button class="icon-btn danger" onclick="tudisAdmin.deleteUser(${u.id})" title="Deletar" ${u.id === this.currentUser?.id ? 'disabled' : ''}>✕</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  saveConfig() {
-    const nameEl = document.getElementById('configSystemName');
-    const descEl = document.getElementById('configSystemDesc');
-    const devEl = document.getElementById('configDeveloper');
-    const colorEl = document.getElementById('configColorStamp');
-    const accentEl = document.getElementById('configColorAccent');
-    const themeEl = document.getElementById('configTheme');
-    
-    if(nameEl) this.config.systemName = nameEl.value;
-    if(descEl) this.config.systemDesc = descEl.value;
-    if(devEl) this.config.developer = devEl.value;
-    if(colorEl) this.config.colorStamp = colorEl.value;
-    if(accentEl) this.config.colorAccent = accentEl.value;
-    if(themeEl) this.config.theme = themeEl.value;
-    
-    this.saveToStorage();
-    this.addLog('config_change', 'Configurações do sistema alteradas');
-    this.updateUI();
-    alert('Configurações salvas com sucesso!');
-  }
-
-  resetConfig() {
-    if (confirm('Restaurar as configurações padrões?')) {
-      this.config = {
-        systemName: 'Tudis',
-        systemDesc: 'Ferramentas de PDF, OCR e QR Code',
-        version: '1.0.0',
-        developer: 'Desenvolvedor',
-        colorStamp: '#B23A2E',
-        colorAccent: '#2F6B4F',
-        theme: 'light',
-        logo: null
+      noResults.style.display = 'none';
+      const categoryNames = {
+        'todas': 'Todas as ferramentas',
+        'organizar': 'Organizar PDF',
+        'converter': 'Converter PDF',
+        'editar': 'Editar PDF',
+        'otimizar': 'Otimizar PDF',
+        'seguranca': 'Segurança de PDF',
+        'ia': 'PDF Intelligence'
       };
-      this.saveToStorage();
-      this.addLog('config_change', 'Configurações restauradas aos padrões');
-      location.reload();
-    }
-  }
+      categoryTitle.textContent = categoryNames[category];
 
-  handleLogoUpload(e) {
-    const file = e.target.files[0];
-    if (file && file.size <= 500000) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        this.config.logo = event.target.result;
-        this.updateLogoPreview();
-        this.saveToStorage();
-        this.addLog('config_change', 'Logomarca alterada');
-      };
-      reader.readAsDataURL(file);
-    } else {
-      alert('Arquivo muito grande (máx 500KB)');
-    }
-  }
-
-  clearLogo() {
-    this.config.logo = null;
-    this.updateLogoPreview();
-    this.saveToStorage();
-    this.addLog('config_change', 'Logomarca removida');
-  }
-
-  updateLogoPreview() {
-    const preview = document.getElementById('logoPreview');
-    if(!preview) return;
-    
-    if (this.config.logo) {
-      preview.innerHTML = `<img src="${this.config.logo}" style="max-width:100%; max-height:100%;">`;
-    } else {
-      preview.innerHTML = '<span class="dot" style="width:40px; height:40px; background:var(--stamp); display:inline-block; border-radius:50%;"></span>';
-    }
-  }
-
-  addLog(type, message) {
-    this.logs.unshift({
-      type: type,
-      message: message,
-      user: this.currentUser?.username || 'sistema',
-      timestamp: new Date().toISOString()
-    });
-    if (this.logs.length > 1000) this.logs.pop();
-    this.saveToStorage();
-  }
-
-  filterLogs() {
-    const typeEl = document.getElementById('filterLogType');
-    const periodEl = document.getElementById('filterLogPeriod');
-    
-    if(!typeEl || !periodEl) return;
-    
-    const type = typeEl.value;
-    const period = periodEl.value;
-    let filtered = [...this.logs];
-
-    if (type !== 'all') {
-      filtered = filtered.filter(l => l.type === type);
+      filtered.forEach(tool => {
+        const card = document.createElement('div');
+        card.className = 'tool-card';
+        card.innerHTML = `
+          <div class="tool-icon">${tool.icon}</div>
+          <div class="tool-name">${tool.name}</div>
+          <div class="tool-description">${tool.description}</div>
+          ${tool.badge ? `<div class="tool-badge">${tool.badge}</div>` : ''}
+        `;
+        card.addEventListener('click', () => openToolModal(tool));
+        grid.appendChild(card);
+      });
     }
 
-    if (period !== 'all') {
-      const days = period === 'today' ? 1 : period === 'week' ? 7 : 30;
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - days);
-      filtered = filtered.filter(l => new Date(l.timestamp) >= cutoff);
+    function openToolModal(tool) {
+      document.getElementById('modal-title').textContent = tool.name;
+      
+      if (!tool.implemented) {
+        document.getElementById('modal-body').innerHTML = `
+          <p style="color: var(--gray-600); text-align: center; padding: 2rem 0;">
+            <strong>🔄 Ferramenta em desenvolvimento</strong><br><br>
+            Esta ferramenta será disponibilizada em breve. Volte sempre para atualizações!
+          </p>
+        `;
+      } else if (tool.id === 'separar-pdf') {
+        renderSepararPDFTool();
+      }
+
+      document.getElementById('tool-modal').classList.add('show');
     }
 
-    this.displayLogs(filtered);
-  }
-
-  displayLogs(logs) {
-    const container = document.getElementById('logsContainer');
-    if(!container) return;
-    
-    container.innerHTML = logs.map(log => `
-      <div class="log-entry">
-        <span class="log-time">${new Date(log.timestamp).toLocaleString('pt-BR')}</span> •
-        <span class="log-user">${log.user}</span> •
-        <span class="log-action">${log.message}</span>
-      </div>
-    `).join('') || '<div class="log-entry">Nenhum log encontrado</div>';
-
-    const totalEl = document.getElementById('totalLogsCount');
-    if(totalEl) totalEl.textContent = this.logs.length;
-    
-    const today = this.logs.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length;
-    const todayEl = document.getElementById('todayLogsCount');
-    if(todayEl) todayEl.textContent = today;
-    
-    const activeEl = document.getElementById('activeUsersCount');
-    if(activeEl) activeEl.textContent = this.users.filter(u => u.status === 'ativo').length;
-  }
-
-  clearLogs() {
-    if (confirm('Tem certeza que deseja limpar todos os logs? Esta ação não pode ser desfeita!')) {
-      this.logs = [];
-      this.saveToStorage();
-      this.displayLogs([]);
-      alert('Logs deletados com sucesso!');
+    function closeModal() {
+      document.getElementById('tool-modal').classList.remove('show');
     }
-  }
 
-  updateUI() {
-    if (this.currentUser) {
-      const brandEl = document.querySelector('.menu-brand');
-      if(brandEl) {
-        if (this.config.logo) {
-          brandEl.innerHTML = `<img src="${this.config.logo}" style="width:24px; height:24px; border-radius:4px; margin-right:8px;">${this.config.systemName}`;
-        } else {
-          brandEl.textContent = this.config.systemName;
+    function renderSepararPDFTool() {
+      const html = `
+        <div class="dropzone" id="dropzone-separar">
+          <div class="dropzone-icon">📤</div>
+          <div class="dropzone-text">Arraste seu PDF aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher</strong> um arquivo</div>
+          <input type="file" id="file-input-separar" accept="application/pdf">
+        </div>
+
+        <div class="file-info" id="file-info-separar">
+          <div class="file-info-header">
+            <div class="file-icon">PDF</div>
+            <div class="file-details">
+              <h3 id="file-name-separar"></h3>
+              <p id="file-size-separar"></p>
+              <p id="page-count-separar" style="color: var(--primary); font-weight: 600;"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-message" id="status-separar">
+          <div class="spinner"></div>
+          <span id="status-text-separar">Processando seu arquivo...</span>
+        </div>
+
+        <div class="progress-container" id="progress-separar">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill-separar"></div>
+          </div>
+          <div class="progress-text">
+            <span id="progress-text-separar">Processando...</span>
+          </div>
+        </div>
+
+        <div class="button-group" id="button-group-separar" style="display: none;">
+          <button class="btn-secondary" id="clear-btn-separar">Limpar</button>
+          <button class="btn-primary" id="process-btn-separar" disabled>
+            <span>⚡</span> Separar Páginas
+          </button>
+        </div>
+
+        <div class="result-section" id="result-separar">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <div class="result-description" id="result-text-separar"></div>
+          <a href="#" class="download-btn" id="download-btn-separar" download="paginas.zip">
+            <span>⬇️</span> Baixar ZIP
+          </a>
+        </div>
+
+        <div class="info-box">
+          <strong>ℹ️ Como funciona:</strong> Seu PDF será separado em múltiplos arquivos (um por página) e baixados como um arquivo ZIP. Tudo é processado localmente no seu navegador, sem envio de dados para nenhum servidor.
+        </div>
+      `;
+
+      document.getElementById('modal-body').innerHTML = html;
+      setupSepararPDFHandlers();
+    }
+
+    function setupSepararPDFHandlers() {
+      const dropzoneSeparar = document.getElementById('dropzone-separar');
+      const fileInputSeparar = document.getElementById('file-input-separar');
+      const fileInfoSeparar = document.getElementById('file-info-separar');
+      const buttonGroupSeparar = document.getElementById('button-group-separar');
+      const processBtnSeparar = document.getElementById('process-btn-separar');
+      const clearBtnSeparar = document.getElementById('clear-btn-separar');
+      const progressSeparar = document.getElementById('progress-separar');
+      const statusSeparar = document.getElementById('status-separar');
+      const resultSeparar = document.getElementById('result-separar');
+      const downloadBtnSeparar = document.getElementById('download-btn-separar');
+
+      let currentFileSeparar = null;
+      let pageCountSeparar = 0;
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes, k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+      }
+
+      dropzoneSeparar.addEventListener('click', () => fileInputSeparar.click());
+
+      dropzoneSeparar.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzoneSeparar.classList.add('drag-over');
+      });
+
+      dropzoneSeparar.addEventListener('dragleave', () => {
+        dropzoneSeparar.classList.remove('drag-over');
+      });
+
+      dropzoneSeparar.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzoneSeparar.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+          handleFileSelectSeparar(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInputSeparar.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+          handleFileSelectSeparar(e.target.files[0]);
+        }
+      });
+
+      async function handleFileSelectSeparar(file) {
+        if (file.type !== 'application/pdf') {
+          alert('Por favor, selecione um arquivo PDF');
+          return;
+        }
+
+        currentFileSeparar = file;
+        dropzoneSeparar.style.display = 'none';
+        fileInfoSeparar.classList.add('show');
+        buttonGroupSeparar.style.display = 'flex';
+
+        document.getElementById('file-name-separar').textContent = file.name;
+        document.getElementById('file-size-separar').textContent = formatFileSize(file.size);
+        document.getElementById('page-count-separar').textContent = 'Carregando...';
+
+        try {
+          const buf = await file.arrayBuffer();
+          const pdf = await PDFDocument.load(buf, { ignoreEncryption: true });
+          pageCountSeparar = pdf.getPageCount();
+          document.getElementById('page-count-separar').textContent = `${pageCountSeparar} página${pageCountSeparar !== 1 ? 's' : ''}`;
+          processBtnSeparar.disabled = false;
+        } catch (error) {
+          alert('Erro ao carregar o PDF: ' + error.message);
+          resetSeparar();
         }
       }
-      
-      const nameEl = document.getElementById('configSystemName');
-      if(nameEl) nameEl.value = this.config.systemName;
-      
-      const descEl = document.getElementById('configSystemDesc');
-      if(descEl) descEl.value = this.config.systemDesc;
-      
-      const versionEl = document.getElementById('configSystemVersion');
-      if(versionEl) versionEl.value = this.config.version;
-      
-      const devEl = document.getElementById('configDeveloper');
-      if(devEl) devEl.value = this.config.developer;
-      
-      const colorStampEl = document.getElementById('configColorStamp');
-      if(colorStampEl) colorStampEl.value = this.config.colorStamp;
-      
-      const colorStampHexEl = document.getElementById('configColorStampHex');
-      if(colorStampHexEl) colorStampHexEl.value = this.config.colorStamp;
-      
-      const colorAccentEl = document.getElementById('configColorAccent');
-      if(colorAccentEl) colorAccentEl.value = this.config.colorAccent;
-      
-      const colorAccentHexEl = document.getElementById('configColorAccentHex');
-      if(colorAccentHexEl) colorAccentHexEl.value = this.config.colorAccent;
-      
-      const themeEl = document.getElementById('configTheme');
-      if(themeEl) themeEl.value = this.config.theme;
-      
-      this.updateLogoPreview();
-      this.updateUsersTable();
-      this.filterLogs();
-    }
-  }
-}
 
-const tudisAdmin = new TudisAdmin();
-</script>
+      function resetSeparar() {
+        currentFileSeparar = null;
+        pageCountSeparar = 0;
+        dropzoneSeparar.style.display = 'block';
+        fileInfoSeparar.classList.remove('show');
+        buttonGroupSeparar.style.display = 'none';
+        fileInputSeparar.value = '';
+        resultSeparar.classList.remove('show');
+        progressSeparar.classList.remove('show');
+        statusSeparar.classList.remove('show');
+        processBtnSeparar.disabled = true;
+      }
+
+      clearBtnSeparar.addEventListener('click', resetSeparar);
+
+      processBtnSeparar.addEventListener('click', async () => {
+        if (!currentFileSeparar) return;
+
+        statusSeparar.classList.add('show');
+        progressSeparar.classList.add('show');
+        resultSeparar.classList.remove('show');
+        processBtnSeparar.disabled = true;
+        clearBtnSeparar.disabled = true;
+
+        try {
+          const buf = await currentFileSeparar.arrayBuffer();
+          const sourcePdf = await PDFDocument.load(buf, { ignoreEncryption: true });
+          const zip = new JSZip();
+
+          for (let i = 0; i < pageCountSeparar; i++) {
+            const newPdf = await PDFDocument.create();
+            const [copiedPage] = await newPdf.copyPages(sourcePdf, [i]);
+            newPdf.addPage(copiedPage);
+
+            const pdfBytes = await newPdf.save();
+            const fileName = `pagina-${String(i + 1).padStart(3, '0')}.pdf`;
+            zip.file(fileName, pdfBytes);
+
+            const progress = Math.round(((i + 1) / pageCountSeparar) * 100);
+            document.getElementById('progress-fill-separar').style.width = progress + '%';
+            document.getElementById('progress-text-separar').textContent = `Processando página ${i + 1} de ${pageCountSeparar}...`;
+          }
+
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          const zipUrl = URL.createObjectURL(zipBlob);
+
+          downloadBtnSeparar.href = zipUrl;
+          downloadBtnSeparar.download = `pdf-separadas-${Date.now()}.zip`;
+
+          document.getElementById('result-text-separar').textContent = 
+            `✅ Perfeito! Suas ${pageCountSeparar} página(s) foram separadas em arquivos individuais.`;
+          
+          statusSeparar.classList.remove('show');
+          progressSeparar.classList.remove('show');
+          resultSeparar.classList.add('show');
+        } catch (error) {
+          console.error(error);
+          statusSeparar.classList.remove('show');
+          progressSeparar.classList.remove('show');
+          alert('Erro ao processar PDF: ' + error.message);
+        } finally {
+          processBtnSeparar.disabled = false;
+          clearBtnSeparar.disabled = false;
+        }
+      });
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('tool-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'tool-modal') {
+        closeModal();
+      }
+    });
+
+    // Inicializar
+    initializeUI();
+  </script>
 </body>
 </html>
