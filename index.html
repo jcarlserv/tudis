@@ -756,6 +756,14 @@
         implemented: true
       },
       {
+        id: 'juntar-pdf',
+        icon: '📎',
+        name: 'Juntar PDF',
+        description: 'Combine múltiplos arquivos PDF em um único documento',
+        category: 'pdf',
+        implemented: true
+      },
+      {
         id: 'comprimir-pdf',
         icon: '🗜️',
         name: 'Comprimir PDF',
@@ -950,6 +958,8 @@
         `;
       } else if (tool.id === 'separar-pdf') {
         renderSepararPDF();
+      } else if (tool.id === 'juntar-pdf') {
+        renderJuntarPDF();
       } else if (tool.id === 'comprimir-imagem') {
         renderComprimirImagem();
       } else if (tool.id === 'redimensionar-imagem') {
@@ -1080,6 +1090,119 @@
       document.getElementById('button-group-pdf').style.display = 'none';
       document.getElementById('file-input-pdf').value = '';
       document.getElementById('result-pdf').classList.remove('show');
+    }
+
+    // JUNTAR PDF
+    function renderJuntarPDF() {
+      const html = `
+        <div class="dropzone" id="dropzone-juntar">
+          <div class="dropzone-icon">📎</div>
+          <div class="dropzone-text">Arraste seus PDFs aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher múltiplos arquivos</strong></div>
+          <input type="file" id="file-input-juntar" accept="application/pdf" multiple>
+        </div>
+        <div class="file-info" id="file-info-juntar">
+          <div id="pdf-list-juntar" style="margin-top:1rem;"></div>
+        </div>
+        <div class="status-message" id="status-juntar" style="display:none;">
+          <div class="spinner"></div>
+          <span>Processando...</span>
+        </div>
+        <div class="progress-container" id="progress-juntar">
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill-juntar"></div></div>
+        </div>
+        <div class="button-group" id="button-group-juntar" style="display:none;">
+          <button class="btn-secondary" onclick="resetJuntarPDF()">Limpar</button>
+          <button class="btn-primary" id="process-juntar">📎 Juntar PDFs</button>
+        </div>
+        <div class="result-section" id="result-juntar">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-juntar"></p>
+          <a href="#" class="download-btn" id="download-juntar" download="arquivo-unido.pdf">⬇️ Baixar PDF</a>
+        </div>
+        <div class="info-box">
+          <strong>ℹ️ Como funciona:</strong> Selecione múltiplos PDFs e eles serão combinados em um único arquivo. A ordem será a mesma do upload. Tudo é processado localmente.
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupJuntarPDF();
+    }
+
+    function setupJuntarPDF() {
+      const dropzone = document.getElementById('dropzone-juntar');
+      const input = document.getElementById('file-input-juntar');
+      const btn = document.getElementById('process-juntar');
+      let selectedFiles = [];
+
+      dropzone.addEventListener('click', () => input.click());
+      dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', e => { 
+        e.preventDefault(); 
+        dropzone.classList.remove('drag-over');
+        if(e.dataTransfer.files.length) loadFiles(e.dataTransfer.files);
+      });
+      input.addEventListener('change', e => { if(e.target.files.length) loadFiles(e.target.files); });
+
+      function loadFiles(files) {
+        selectedFiles = Array.from(files).filter(f => f.type === 'application/pdf');
+        if(selectedFiles.length === 0) { alert('Selecione pelo menos um PDF'); return; }
+        
+        dropzone.style.display = 'none';
+        document.getElementById('file-info-juntar').classList.add('show');
+        document.getElementById('button-group-juntar').style.display = 'flex';
+        
+        const list = document.getElementById('pdf-list-juntar');
+        list.innerHTML = '<strong>Arquivos selecionados:</strong><ul style="margin-top:0.5rem;">';
+        selectedFiles.forEach((f, i) => {
+          list.innerHTML += `<li style="padding:0.5rem 0;">${i+1}. ${f.name} (${(f.size/1024).toFixed(1)}KB)</li>`;
+        });
+        list.innerHTML += '</ul>';
+        
+        btn.disabled = false;
+      }
+
+      btn.addEventListener('click', async () => {
+        if(selectedFiles.length === 0) return;
+        document.getElementById('status-juntar').style.display = 'flex';
+        document.getElementById('progress-juntar').style.display = 'block';
+        btn.disabled = true;
+
+        try {
+          const mergedPdf = await PDFDocument.create();
+          
+          for(let i = 0; i < selectedFiles.length; i++) {
+            const buf = await selectedFiles[i].arrayBuffer();
+            const pdf = await PDFDocument.load(buf, { ignoreEncryption: true });
+            const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            pages.forEach(page => mergedPdf.addPage(page));
+            
+            document.getElementById('progress-fill-juntar').style.width = Math.round((i+1)/selectedFiles.length*100)+'%';
+          }
+
+          const pdfBytes = await mergedPdf.save();
+          const blob = new Blob([pdfBytes], {type: 'application/pdf'});
+          const url = URL.createObjectURL(blob);
+          document.getElementById('download-juntar').href = url;
+          document.getElementById('result-text-juntar').textContent = `✅ ${selectedFiles.length} PDF(s) juntado(s) com sucesso!`;
+          document.getElementById('status-juntar').style.display = 'none';
+          document.getElementById('progress-juntar').style.display = 'none';
+          document.getElementById('result-juntar').classList.add('show');
+        } catch(e) {
+          alert('Erro: '+e.message);
+          document.getElementById('status-juntar').style.display = 'none';
+        }
+        btn.disabled = false;
+      });
+    }
+
+    function resetJuntarPDF() {
+      document.getElementById('dropzone-juntar').style.display = 'block';
+      document.getElementById('file-info-juntar').classList.remove('show');
+      document.getElementById('button-group-juntar').style.display = 'none';
+      document.getElementById('file-input-juntar').value = '';
+      document.getElementById('result-juntar').classList.remove('show');
     }
 
     // COMPRIMIR IMAGEM
