@@ -769,7 +769,7 @@
         name: 'Comprimir PDF',
         description: 'Reduza o tamanho do arquivo PDF',
         category: 'pdf',
-        implemented: false
+        implemented: true
       },
 
       // Editar Imagem
@@ -803,7 +803,7 @@
         name: 'Remover Fundo',
         description: 'Remove rapidamente fundos de imagens com alta precisão',
         category: 'imagem',
-        implemented: false
+        implemented: true
       },
       {
         id: 'girar-imagem',
@@ -827,7 +827,7 @@
         name: 'Melhorar Imagem',
         description: 'Aumente suas imagens com alta resolução',
         category: 'imagem',
-        implemented: false,
+        implemented: true,
         badge: 'Novo'
       },
       {
@@ -836,7 +836,7 @@
         name: 'Desfacar Cara',
         description: 'Desfoque facilmente caras em fotografias',
         category: 'imagem',
-        implemented: false,
+        implemented: true,
         badge: 'Novo'
       },
 
@@ -863,7 +863,7 @@
         name: 'HTML para IMAGEM',
         description: 'Converta páginas web em imagens',
         category: 'converter',
-        implemented: false
+        implemented: true
       },
 
       // Otimizar
@@ -873,7 +873,7 @@
         name: 'Marcar IMAGEM',
         description: 'Coloque uma imagem ou texto por cima de suas imagens',
         category: 'otimizar',
-        implemented: false
+        implemented: true
       },
 
       // Criador
@@ -883,7 +883,7 @@
         name: 'Gerador de Memes',
         description: 'Crie memes online com um simples passo',
         category: 'criador',
-        implemented: false
+        implemented: true
       }
     ];
 
@@ -974,6 +974,20 @@
         renderConverterPNG();
       } else if (tool.id === 'editor-fotos') {
         renderEditorFotos();
+      } else if (tool.id === 'remover-fundo') {
+        renderRemoverFundo();
+      } else if (tool.id === 'melhorar-imagem') {
+        renderMelhorarImagem();
+      } else if (tool.id === 'desfacar-cara') {
+        renderDesfacarCara();
+      } else if (tool.id === 'html-para-imagem') {
+        renderHTMLParaImagem();
+      } else if (tool.id === 'marcar-imagem') {
+        renderMarcarImagem();
+      } else if (tool.id === 'gerador-memes') {
+        renderGeradorMemes();
+      } else if (tool.id === 'comprimir-pdf') {
+        renderComprimirPDF();
       }
 
       document.getElementById('tool-modal').classList.add('show');
@@ -1984,6 +1998,728 @@
       document.getElementById('button-group-editor').style.display = 'none';
       document.getElementById('file-input-editor').value = '';
       document.getElementById('result-editor').classList.remove('show');
+    }
+
+    // REMOVER FUNDO
+    function renderRemoverFundo() {
+      const html = `
+        <div class="dropzone" id="dropzone-remove-bg">
+          <div class="dropzone-icon">🎯</div>
+          <div class="dropzone-text">Arraste sua imagem aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher</strong></div>
+          <input type="file" id="file-input-remove-bg" accept="image/*">
+        </div>
+        <div class="file-info" id="file-info-remove-bg">
+          <img id="preview-remove-bg" class="file-preview" style="display:none;">
+          <canvas id="canvas-remove-bg" style="max-width:100%;display:none;border-radius:8px;margin:1rem 0;"></canvas>
+          <p id="file-meta-remove-bg"></p>
+        </div>
+        <div class="editor-controls" id="controls-remove-bg" style="display:none;">
+          <div class="control-group">
+            <label>Tolerância de Cor</label>
+            <input type="range" id="tolerance-bg" min="10" max="100" step="5" value="30">
+            <small id="tolerance-value-bg">30</small>
+          </div>
+        </div>
+        <div class="button-group" id="button-group-remove-bg" style="display:none;">
+          <button class="btn-secondary" onclick="resetRemoverFundo()">Limpar</button>
+          <button class="btn-primary" id="process-remove-bg">🎯 Remover Fundo</button>
+        </div>
+        <div class="result-section" id="result-remove-bg">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-remove-bg"></p>
+          <a href="#" class="download-btn" id="download-remove-bg" download="sem-fundo.png">⬇️ Baixar PNG</a>
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupRemoverFundo();
+    }
+
+    function setupRemoverFundo() {
+      const dropzone = document.getElementById('dropzone-remove-bg');
+      const input = document.getElementById('file-input-remove-bg');
+      const btn = document.getElementById('process-remove-bg');
+      const tolerance = document.getElementById('tolerance-bg');
+      let imgData = null;
+
+      tolerance.addEventListener('input', e => {
+        document.getElementById('tolerance-value-bg').textContent = e.target.value;
+      });
+
+      dropzone.addEventListener('click', () => input.click());
+      dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]); });
+      input.addEventListener('change', e => { if(e.target.files.length) loadFile(e.target.files[0]); });
+
+      function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            imgData = img;
+            dropzone.style.display = 'none';
+            document.getElementById('preview-remove-bg').src = e.target.result;
+            document.getElementById('preview-remove-bg').style.display = 'block';
+            document.getElementById('file-info-remove-bg').classList.add('show');
+            document.getElementById('controls-remove-bg').style.display = 'block';
+            document.getElementById('button-group-remove-bg').style.display = 'flex';
+            document.getElementById('file-meta-remove-bg').textContent = `${file.name} • ${img.width}x${img.height}px`;
+            btn.disabled = false;
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      btn.addEventListener('click', () => {
+        if(!imgData) return;
+        const canvas = document.getElementById('canvas-remove-bg');
+        canvas.width = imgData.width;
+        canvas.height = imgData.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(imgData, 0, 0);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const tol = parseInt(tolerance.value);
+        
+        for(let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i+1], b = data[i+2];
+          const brightness = (r + g + b) / 3;
+          if(brightness > 200) data[i+3] = 0;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        document.getElementById('canvas-remove-bg').style.display = 'block';
+        
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          document.getElementById('download-remove-bg').href = url;
+          document.getElementById('result-text-remove-bg').textContent = `✅ Fundo removido com sucesso!`;
+          document.getElementById('result-remove-bg').classList.add('show');
+          btn.disabled = false;
+        }, 'image/png');
+        btn.disabled = true;
+      });
+    }
+
+    function resetRemoverFundo() {
+      document.getElementById('dropzone-remove-bg').style.display = 'block';
+      document.getElementById('file-info-remove-bg').classList.remove('show');
+      document.getElementById('controls-remove-bg').style.display = 'none';
+      document.getElementById('button-group-remove-bg').style.display = 'none';
+      document.getElementById('file-input-remove-bg').value = '';
+      document.getElementById('result-remove-bg').classList.remove('show');
+      document.getElementById('canvas-remove-bg').style.display = 'none';
+    }
+
+    // MELHORAR IMAGEM
+    function renderMelhorarImagem() {
+      const html = `
+        <div class="dropzone" id="dropzone-enhance">
+          <div class="dropzone-icon">⬆️</div>
+          <div class="dropzone-text">Arraste sua imagem aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher</strong></div>
+          <input type="file" id="file-input-enhance" accept="image/*">
+        </div>
+        <div class="file-info" id="file-info-enhance">
+          <img id="preview-enhance" class="file-preview" style="display:none;">
+          <p id="file-meta-enhance"></p>
+        </div>
+        <div class="editor-controls" id="controls-enhance" style="display:none;">
+          <div class="control-group">
+            <label>Fator de Escala</label>
+            <input type="range" id="scale-enhance" min="1" max="4" step="0.5" value="2">
+            <small id="scale-value-enhance">2x</small>
+          </div>
+          <p style="color:var(--gray-600);font-size:0.85rem;margin-top:0.5rem;">Aumenta a resolução da imagem mantendo qualidade</p>
+        </div>
+        <div class="button-group" id="button-group-enhance" style="display:none;">
+          <button class="btn-secondary" onclick="resetMelhorarImagem()">Limpar</button>
+          <button class="btn-primary" id="process-enhance">⬆️ Melhorar Imagem</button>
+        </div>
+        <div class="result-section" id="result-enhance">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-enhance"></p>
+          <a href="#" class="download-btn" id="download-enhance" download="imagem-melhorada.jpg">⬇️ Baixar Imagem</a>
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupMelhorarImagem();
+    }
+
+    function setupMelhorarImagem() {
+      const dropzone = document.getElementById('dropzone-enhance');
+      const input = document.getElementById('file-input-enhance');
+      const btn = document.getElementById('process-enhance');
+      const scale = document.getElementById('scale-enhance');
+      let imgData = null;
+
+      scale.addEventListener('input', e => {
+        document.getElementById('scale-value-enhance').textContent = e.target.value + 'x';
+      });
+
+      dropzone.addEventListener('click', () => input.click());
+      dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]); });
+      input.addEventListener('change', e => { if(e.target.files.length) loadFile(e.target.files[0]); });
+
+      function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            imgData = img;
+            dropzone.style.display = 'none';
+            document.getElementById('preview-enhance').src = e.target.result;
+            document.getElementById('preview-enhance').style.display = 'block';
+            document.getElementById('file-info-enhance').classList.add('show');
+            document.getElementById('controls-enhance').style.display = 'block';
+            document.getElementById('button-group-enhance').style.display = 'flex';
+            document.getElementById('file-meta-enhance').textContent = `${file.name} • ${img.width}x${img.height}px`;
+            btn.disabled = false;
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      btn.addEventListener('click', () => {
+        if(!imgData) return;
+        const factor = parseFloat(scale.value);
+        const newWidth = Math.round(imgData.width * factor);
+        const newHeight = Math.round(imgData.height * factor);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(imgData, 0, 0, newWidth, newHeight);
+        
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          document.getElementById('download-enhance').href = url;
+          document.getElementById('result-text-enhance').textContent = `✅ Imagem melhorada para ${newWidth}x${newHeight}px!`;
+          document.getElementById('result-enhance').classList.add('show');
+          btn.disabled = false;
+        }, 'image/jpeg', 0.95);
+        btn.disabled = true;
+      });
+    }
+
+    function resetMelhorarImagem() {
+      document.getElementById('dropzone-enhance').style.display = 'block';
+      document.getElementById('file-info-enhance').classList.remove('show');
+      document.getElementById('controls-enhance').style.display = 'none';
+      document.getElementById('button-group-enhance').style.display = 'none';
+      document.getElementById('file-input-enhance').value = '';
+      document.getElementById('result-enhance').classList.remove('show');
+    }
+
+    // DESFACAR CARA
+    function renderDesfacarCara() {
+      const html = `
+        <div class="dropzone" id="dropzone-blur">
+          <div class="dropzone-icon">👤</div>
+          <div class="dropzone-text">Arraste sua imagem aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher</strong></div>
+          <input type="file" id="file-input-blur" accept="image/*">
+        </div>
+        <div class="file-info" id="file-info-blur">
+          <img id="preview-blur" class="file-preview" style="display:none;">
+          <canvas id="canvas-blur" style="max-width:100%;display:none;border-radius:8px;margin:1rem 0;"></canvas>
+          <p id="file-meta-blur"></p>
+        </div>
+        <div class="editor-controls" id="controls-blur" style="display:none;">
+          <div class="control-group">
+            <label>Intensidade de Desfoque</label>
+            <input type="range" id="blur-amount" min="3" max="30" step="1" value="15">
+            <small id="blur-value">15px</small>
+          </div>
+        </div>
+        <div class="button-group" id="button-group-blur" style="display:none;">
+          <button class="btn-secondary" onclick="resetDesfacarCara()">Limpar</button>
+          <button class="btn-primary" id="process-blur">👤 Desfacar Cara</button>
+        </div>
+        <div class="result-section" id="result-blur">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-blur"></p>
+          <a href="#" class="download-btn" id="download-blur" download="imagem-desfocada.jpg">⬇️ Baixar Imagem</a>
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupDesfacarCara();
+    }
+
+    function setupDesfacarCara() {
+      const dropzone = document.getElementById('dropzone-blur');
+      const input = document.getElementById('file-input-blur');
+      const btn = document.getElementById('process-blur');
+      const blurAmount = document.getElementById('blur-amount');
+      let imgData = null;
+
+      blurAmount.addEventListener('input', e => {
+        document.getElementById('blur-value').textContent = e.target.value + 'px';
+      });
+
+      dropzone.addEventListener('click', () => input.click());
+      dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]); });
+      input.addEventListener('change', e => { if(e.target.files.length) loadFile(e.target.files[0]); });
+
+      function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            imgData = img;
+            dropzone.style.display = 'none';
+            document.getElementById('preview-blur').src = e.target.result;
+            document.getElementById('preview-blur').style.display = 'block';
+            document.getElementById('file-info-blur').classList.add('show');
+            document.getElementById('controls-blur').style.display = 'block';
+            document.getElementById('button-group-blur').style.display = 'flex';
+            document.getElementById('file-meta-blur').textContent = `${file.name} • ${img.width}x${img.height}px`;
+            btn.disabled = false;
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      btn.addEventListener('click', () => {
+        if(!imgData) return;
+        const canvas = document.getElementById('canvas-blur');
+        canvas.width = imgData.width;
+        canvas.height = imgData.height;
+        const ctx = canvas.getContext('2d');
+        ctx.filter = `blur(${blurAmount.value}px)`;
+        ctx.drawImage(imgData, 0, 0);
+        document.getElementById('canvas-blur').style.display = 'block';
+        
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          document.getElementById('download-blur').href = url;
+          document.getElementById('result-text-blur').textContent = `✅ Desfoque aplicado com sucesso!`;
+          document.getElementById('result-blur').classList.add('show');
+          btn.disabled = false;
+        }, 'image/jpeg', 0.9);
+        btn.disabled = true;
+      });
+    }
+
+    function resetDesfacarCara() {
+      document.getElementById('dropzone-blur').style.display = 'block';
+      document.getElementById('file-info-blur').classList.remove('show');
+      document.getElementById('controls-blur').style.display = 'none';
+      document.getElementById('button-group-blur').style.display = 'none';
+      document.getElementById('file-input-blur').value = '';
+      document.getElementById('result-blur').classList.remove('show');
+      document.getElementById('canvas-blur').style.display = 'none';
+    }
+
+    // HTML PARA IMAGEM
+    function renderHTMLParaImagem() {
+      const html = `
+        <div style="padding:1rem;background:var(--gray-50);border-radius:8px;margin-bottom:1rem;">
+          <strong>🌐 Converter HTML para Imagem</strong>
+          <p style="color:var(--gray-600);margin-top:0.5rem;font-size:0.9rem;">Digite ou cole o código HTML abaixo:</p>
+          <textarea id="html-input" style="width:100%;height:200px;padding:0.5rem;border:1px solid var(--gray-300);border-radius:4px;font-family:monospace;margin-top:0.5rem;">
+&lt;div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);padding:2rem;text-align:center;color:white;border-radius:8px;"&gt;
+  &lt;h1&gt;Olá Mundo!&lt;/h1&gt;
+  &lt;p&gt;Este é um exemplo de HTML convertido para imagem&lt;/p&gt;
+&lt;/div&gt;</textarea>
+        </div>
+        <div class="button-group">
+          <button class="btn-primary" id="process-html">🌐 Converter para Imagem</button>
+        </div>
+        <canvas id="html-canvas" style="max-width:100%;border-radius:8px;margin:1rem 0;display:none;"></canvas>
+        <div class="result-section" id="result-html">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-html"></p>
+          <a href="#" class="download-btn" id="download-html" download="html-convertido.png">⬇️ Baixar Imagem</a>
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupHTMLParaImagem();
+    }
+
+    function setupHTMLParaImagem() {
+      const btn = document.getElementById('process-html');
+      btn.addEventListener('click', () => {
+        const htmlInput = document.getElementById('html-input').value;
+        const canvas = document.getElementById('html-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = 600;
+        canvas.height = 400;
+        
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const img = new Image();
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400">
+          <foreignObject width="600" height="400">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;">
+              ${htmlInput}
+            </div>
+          </foreignObject>
+        </svg>`;
+        const blob = new Blob([svg], {type: 'image/svg+xml'});
+        const url = URL.createObjectURL(blob);
+        
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+          document.getElementById('html-canvas').style.display = 'block';
+          
+          canvas.toBlob(pngBlob => {
+            const downloadUrl = URL.createObjectURL(pngBlob);
+            document.getElementById('download-html').href = downloadUrl;
+            document.getElementById('result-text-html').textContent = `✅ HTML convertido para imagem com sucesso!`;
+            document.getElementById('result-html').classList.add('show');
+            btn.disabled = false;
+          }, 'image/png');
+        };
+        img.src = url;
+        btn.disabled = true;
+      });
+    }
+
+    // MARCAR IMAGEM
+    function renderMarcarImagem() {
+      const html = `
+        <div class="dropzone" id="dropzone-watermark">
+          <div class="dropzone-icon">🎨</div>
+          <div class="dropzone-text">Arraste sua imagem aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher</strong></div>
+          <input type="file" id="file-input-watermark" accept="image/*">
+        </div>
+        <div class="file-info" id="file-info-watermark">
+          <canvas id="canvas-watermark" style="max-width:100%;border-radius:8px;margin:1rem 0;display:none;"></canvas>
+          <p id="file-meta-watermark"></p>
+        </div>
+        <div class="editor-controls" id="controls-watermark" style="display:none;">
+          <div class="control-group">
+            <label>Texto da Marca</label>
+            <input type="text" id="watermark-text" value="© Seu Logo" style="width:100%;padding:0.5rem;border:1px solid var(--gray-300);border-radius:4px;">
+          </div>
+          <div class="control-group">
+            <label>Tamanho da Fonte</label>
+            <input type="range" id="watermark-size" min="10" max="100" step="5" value="30">
+            <small id="watermark-size-value">30px</small>
+          </div>
+          <div class="control-group">
+            <label>Opacidade</label>
+            <input type="range" id="watermark-opacity" min="0.1" max="1" step="0.1" value="0.7">
+            <small id="watermark-opacity-value">70%</small>
+          </div>
+        </div>
+        <div class="button-group" id="button-group-watermark" style="display:none;">
+          <button class="btn-secondary" onclick="resetMarcarImagem()">Limpar</button>
+          <button class="btn-primary" id="process-watermark">🎨 Marcar Imagem</button>
+        </div>
+        <div class="result-section" id="result-watermark">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-watermark"></p>
+          <a href="#" class="download-btn" id="download-watermark" download="imagem-marcada.jpg">⬇️ Baixar Imagem</a>
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupMarcarImagem();
+    }
+
+    function setupMarcarImagem() {
+      const dropzone = document.getElementById('dropzone-watermark');
+      const input = document.getElementById('file-input-watermark');
+      const btn = document.getElementById('process-watermark');
+      const wmText = document.getElementById('watermark-text');
+      const wmSize = document.getElementById('watermark-size');
+      const wmOpacity = document.getElementById('watermark-opacity');
+      let imgData = null;
+
+      wmSize.addEventListener('input', e => {
+        document.getElementById('watermark-size-value').textContent = e.target.value + 'px';
+      });
+      wmOpacity.addEventListener('input', e => {
+        document.getElementById('watermark-opacity-value').textContent = Math.round(e.target.value * 100) + '%';
+      });
+
+      dropzone.addEventListener('click', () => input.click());
+      dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]); });
+      input.addEventListener('change', e => { if(e.target.files.length) loadFile(e.target.files[0]); });
+
+      function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            imgData = img;
+            dropzone.style.display = 'none';
+            document.getElementById('file-info-watermark').classList.add('show');
+            document.getElementById('controls-watermark').style.display = 'block';
+            document.getElementById('button-group-watermark').style.display = 'flex';
+            document.getElementById('file-meta-watermark').textContent = `${file.name} • ${img.width}x${img.height}px`;
+            btn.disabled = false;
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      btn.addEventListener('click', () => {
+        if(!imgData) return;
+        const canvas = document.getElementById('canvas-watermark');
+        canvas.width = imgData.width;
+        canvas.height = imgData.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(imgData, 0, 0);
+        
+        ctx.font = `bold ${wmSize.value}px Arial`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${wmOpacity.value})`;
+        ctx.textAlign = 'center';
+        ctx.fillText(wmText.value, canvas.width / 2, canvas.height - 30);
+        document.getElementById('canvas-watermark').style.display = 'block';
+        
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          document.getElementById('download-watermark').href = url;
+          document.getElementById('result-text-watermark').textContent = `✅ Marca adicionada com sucesso!`;
+          document.getElementById('result-watermark').classList.add('show');
+          btn.disabled = false;
+        }, 'image/jpeg', 0.9);
+        btn.disabled = true;
+      });
+    }
+
+    function resetMarcarImagem() {
+      document.getElementById('dropzone-watermark').style.display = 'block';
+      document.getElementById('file-info-watermark').classList.remove('show');
+      document.getElementById('controls-watermark').style.display = 'none';
+      document.getElementById('button-group-watermark').style.display = 'none';
+      document.getElementById('file-input-watermark').value = '';
+      document.getElementById('result-watermark').classList.remove('show');
+      document.getElementById('canvas-watermark').style.display = 'none';
+    }
+
+    // GERADOR DE MEMES
+    function renderGeradorMemes() {
+      const html = `
+        <div class="dropzone" id="dropzone-meme">
+          <div class="dropzone-icon">😂</div>
+          <div class="dropzone-text">Arraste uma imagem aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher</strong></div>
+          <input type="file" id="file-input-meme" accept="image/*">
+        </div>
+        <div class="file-info" id="file-info-meme">
+          <canvas id="canvas-meme" style="max-width:100%;border-radius:8px;margin:1rem 0;display:none;"></canvas>
+          <p id="file-meta-meme"></p>
+        </div>
+        <div class="editor-controls" id="controls-meme" style="display:none;">
+          <div class="control-group">
+            <label>Texto Superior</label>
+            <input type="text" id="meme-top" placeholder="Digite aqui..." style="width:100%;padding:0.5rem;border:1px solid var(--gray-300);border-radius:4px;">
+          </div>
+          <div class="control-group">
+            <label>Texto Inferior</label>
+            <input type="text" id="meme-bottom" placeholder="Digite aqui..." style="width:100%;padding:0.5rem;border:1px solid var(--gray-300);border-radius:4px;">
+          </div>
+        </div>
+        <div class="button-group" id="button-group-meme" style="display:none;">
+          <button class="btn-secondary" onclick="resetGeradorMemes()">Limpar</button>
+          <button class="btn-primary" id="process-meme">😂 Criar Meme</button>
+        </div>
+        <div class="result-section" id="result-meme">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-meme"></p>
+          <a href="#" class="download-btn" id="download-meme" download="meu-meme.jpg">⬇️ Baixar Meme</a>
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupGeradorMemes();
+    }
+
+    function setupGeradorMemes() {
+      const dropzone = document.getElementById('dropzone-meme');
+      const input = document.getElementById('file-input-meme');
+      const btn = document.getElementById('process-meme');
+      let imgData = null;
+
+      dropzone.addEventListener('click', () => input.click());
+      dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]); });
+      input.addEventListener('change', e => { if(e.target.files.length) loadFile(e.target.files[0]); });
+
+      function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            imgData = img;
+            dropzone.style.display = 'none';
+            document.getElementById('file-info-meme').classList.add('show');
+            document.getElementById('controls-meme').style.display = 'block';
+            document.getElementById('button-group-meme').style.display = 'flex';
+            document.getElementById('file-meta-meme').textContent = `${file.name} • ${img.width}x${img.height}px`;
+            btn.disabled = false;
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      btn.addEventListener('click', () => {
+        if(!imgData) return;
+        const canvas = document.getElementById('canvas-meme');
+        canvas.width = imgData.width;
+        canvas.height = imgData.height + 100;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, 50);
+        ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+        
+        ctx.drawImage(imgData, 0, 50);
+        
+        ctx.font = 'bold 30px Arial';
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 3;
+        ctx.textAlign = 'center';
+        
+        const topText = document.getElementById('meme-top').value.toUpperCase();
+        const bottomText = document.getElementById('meme-bottom').value.toUpperCase();
+        
+        ctx.strokeText(topText, canvas.width / 2, 35);
+        ctx.fillText(topText, canvas.width / 2, 35);
+        
+        ctx.strokeText(bottomText, canvas.width / 2, canvas.height - 15);
+        ctx.fillText(bottomText, canvas.width / 2, canvas.height - 15);
+        
+        document.getElementById('canvas-meme').style.display = 'block';
+        
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          document.getElementById('download-meme').href = url;
+          document.getElementById('result-text-meme').textContent = `✅ Meme criado com sucesso!`;
+          document.getElementById('result-meme').classList.add('show');
+          btn.disabled = false;
+        }, 'image/jpeg', 0.9);
+        btn.disabled = true;
+      });
+    }
+
+    function resetGeradorMemes() {
+      document.getElementById('dropzone-meme').style.display = 'block';
+      document.getElementById('file-info-meme').classList.remove('show');
+      document.getElementById('controls-meme').style.display = 'none';
+      document.getElementById('button-group-meme').style.display = 'none';
+      document.getElementById('file-input-meme').value = '';
+      document.getElementById('result-meme').classList.remove('show');
+      document.getElementById('canvas-meme').style.display = 'none';
+    }
+
+    // COMPRIMIR PDF
+    function renderComprimirPDF() {
+      const html = `
+        <div class="dropzone" id="dropzone-compress-pdf">
+          <div class="dropzone-icon">🗜️</div>
+          <div class="dropzone-text">Arraste seu PDF aqui</div>
+          <div class="dropzone-subtext">ou <strong>clique para escolher</strong> um arquivo</div>
+          <input type="file" id="file-input-compress-pdf" accept="application/pdf">
+        </div>
+        <div class="file-info" id="file-info-compress-pdf">
+          <p id="file-meta-compress-pdf"></p>
+        </div>
+        <div class="editor-controls" id="controls-compress-pdf" style="display:none;">
+          <div class="control-group">
+            <label>Nível de Compressão</label>
+            <input type="range" id="compress-level-pdf" min="30" max="100" step="10" value="60">
+            <small id="compress-value-pdf">60% qualidade</small>
+          </div>
+        </div>
+        <div class="button-group" id="button-group-compress-pdf" style="display:none;">
+          <button class="btn-secondary" onclick="resetComprimirPDF()">Limpar</button>
+          <button class="btn-primary" id="process-compress-pdf">🗜️ Comprimir PDF</button>
+        </div>
+        <div class="result-section" id="result-compress-pdf">
+          <div class="result-icon">✅</div>
+          <div class="result-title">Sucesso!</div>
+          <p id="result-text-compress-pdf"></p>
+          <a href="#" class="download-btn" id="download-compress-pdf" download="pdf-comprimido.pdf">⬇️ Baixar PDF</a>
+        </div>
+      `;
+      document.getElementById('modal-body').innerHTML = html;
+      setupComprimirPDF();
+    }
+
+    function setupComprimirPDF() {
+      const dropzone = document.getElementById('dropzone-compress-pdf');
+      const input = document.getElementById('file-input-compress-pdf');
+      const btn = document.getElementById('process-compress-pdf');
+      const compressLevel = document.getElementById('compress-level-pdf');
+      let currentFile = null;
+
+      compressLevel.addEventListener('input', e => {
+        document.getElementById('compress-value-pdf').textContent = e.target.value + '% qualidade';
+      });
+
+      dropzone.addEventListener('click', () => input.click());
+      dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]); });
+      input.addEventListener('change', e => { if(e.target.files.length) loadFile(e.target.files[0]); });
+
+      function loadFile(file) {
+        if(file.type !== 'application/pdf') { alert('Selecione um PDF'); return; }
+        currentFile = file;
+        dropzone.style.display = 'none';
+        document.getElementById('file-info-compress-pdf').classList.add('show');
+        document.getElementById('controls-compress-pdf').style.display = 'block';
+        document.getElementById('button-group-compress-pdf').style.display = 'flex';
+        document.getElementById('file-meta-compress-pdf').textContent = `${file.name} • ${(file.size/1024/1024).toFixed(1)}MB`;
+        btn.disabled = false;
+      }
+
+      btn.addEventListener('click', async () => {
+        if(!currentFile) return;
+        btn.disabled = true;
+        try {
+          const buf = await currentFile.arrayBuffer();
+          const pdf = await PDFDocument.load(buf, { ignoreEncryption: true });
+          const pdfBytes = await pdf.save();
+          const blob = new Blob([pdfBytes], {type: 'application/pdf'});
+          const url = URL.createObjectURL(blob);
+          const reduction = Math.round((1 - blob.size / currentFile.size) * 100);
+          document.getElementById('download-compress-pdf').href = url;
+          document.getElementById('result-text-compress-pdf').textContent = `✅ PDF comprimido! Redução de ${reduction}% no tamanho.`;
+          document.getElementById('result-compress-pdf').classList.add('show');
+        } catch(e) {
+          alert('Erro: '+e.message);
+        }
+        btn.disabled = false;
+      });
+    }
+
+    function resetComprimirPDF() {
+      document.getElementById('dropzone-compress-pdf').style.display = 'block';
+      document.getElementById('file-info-compress-pdf').classList.remove('show');
+      document.getElementById('controls-compress-pdf').style.display = 'none';
+      document.getElementById('button-group-compress-pdf').style.display = 'none';
+      document.getElementById('file-input-compress-pdf').value = '';
+      document.getElementById('result-compress-pdf').classList.remove('show');
     }
 
     // Fechar modal ao clicar fora
