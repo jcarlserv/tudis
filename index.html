@@ -521,7 +521,7 @@
 
   <!-- Footer -->
   <footer>
-    <p>ProdClin v6.16.0 • Desenvolvido por DSP Group adaptando para Tudis</p>
+    <p>Tudis v6.16.0 • Desenvolvido por DSP Group adaptando para Tudis</p>
   </footer>
 
   <script>
@@ -556,6 +556,14 @@
       {id:'qr-texto',icon:'📝',name:'QR Code Texto',desc:'Gera QR de texto',category:'qrcode'},
       {id:'qr-wifi',icon:'📡',name:'QR Code WiFi',desc:'Gera QR de WiFi',category:'qrcode'},
     ];
+
+    let rotationAngle = 0;
+
+    function rotateImg(angle) {
+      rotationAngle += angle;
+      const preview = document.getElementById('prev-gir');
+      if(preview) preview.style.transform = `rotate(${rotationAngle}deg)`;
+    }
 
     function initializeUI() {
       renderTools('todas');
@@ -1013,11 +1021,6 @@
       const btn = document.getElementById('proc-gir');
       let img, ang = 0;
 
-      window.rotateImg = (a) => {
-        ang += a;
-        document.getElementById('prev-gir').style.transform = `rotate(${ang}deg)`;
-      };
-
       drop.addEventListener('click', () => inp.click());
       drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
       drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
@@ -1030,7 +1033,7 @@
           const i = new Image();
           i.onload = () => {
             img = i;
-            ang = 0;
+            rotationAngle = 0;
             drop.style.display = 'none';
             document.getElementById('info-gir').style.display = 'block';
             document.getElementById('ctrl-gir').style.display = 'block';
@@ -1044,7 +1047,7 @@
       }
 
       btn.addEventListener('click', () => {
-        const rad = (ang * Math.PI) / 180;
+        const rad = (rotationAngle * Math.PI) / 180;
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
         const w = img.width;
@@ -1072,6 +1075,7 @@
       document.getElementById('btn-gir').style.display = 'none';
       document.getElementById('res-gir').classList.remove('show');
       document.getElementById('prev-gir').style.transform = 'none';
+      rotationAngle = 0;
     }
 
     function renderRemoverBG() {
@@ -1415,7 +1419,10 @@
           <label>Cole a URL:</label>
           <input type="text" id="qr-url-input" placeholder="https://exemplo.com">
         </div>
-        <button class="btn-primary" onclick="generateQRURL()">🌐 Gerar QR Code</button>
+        <div class="button-group">
+          <button class="btn-secondary" onclick="resetQR()">Limpar</button>
+          <button class="btn-primary" onclick="generateQRURL()">🌐 Gerar QR Code</button>
+        </div>
         <div id="qr-display"></div>
         <div class="result-section" id="qr-result">
           <a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR Code</a>
@@ -1429,7 +1436,10 @@
           <label>Digite o texto:</label>
           <textarea id="qr-text-input" placeholder="Seu texto aqui..."></textarea>
         </div>
-        <button class="btn-primary" onclick="generateQRText()">📝 Gerar QR Code</button>
+        <div class="button-group">
+          <button class="btn-secondary" onclick="resetQR()">Limpar</button>
+          <button class="btn-primary" onclick="generateQRText()">📝 Gerar QR Code</button>
+        </div>
         <div id="qr-display"></div>
         <div class="result-section" id="qr-result">
           <a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR Code</a>
@@ -1447,7 +1457,10 @@
           <label>Senha:</label>
           <input type="password" id="qr-wifi-pwd" placeholder="Senha do WiFi">
         </div>
-        <button class="btn-primary" onclick="generateQRWiFi()">📡 Gerar QR Code</button>
+        <div class="button-group">
+          <button class="btn-secondary" onclick="resetQR()">Limpar</button>
+          <button class="btn-primary" onclick="generateQRWiFi()">📡 Gerar QR Code</button>
+        </div>
         <div id="qr-display"></div>
         <div class="result-section" id="qr-result">
           <a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR Code</a>
@@ -1499,11 +1512,39 @@
       }, 100);
     }
 
+    function resetQR() {
+      document.getElementById('qr-display').innerHTML = '';
+      document.getElementById('qr-display').classList.remove('show');
+      document.getElementById('qr-result').classList.remove('show');
+      if(document.getElementById('qr-url-input')) document.getElementById('qr-url-input').value = '';
+      if(document.getElementById('qr-text-input')) document.getElementById('qr-text-input').value = '';
+      if(document.getElementById('qr-wifi-ssid')) {
+        document.getElementById('qr-wifi-ssid').value = '';
+        document.getElementById('qr-wifi-pwd').value = '';
+      }
+    }
+
     // Iniciar
     initializeUI();
     document.getElementById('tool-modal').addEventListener('click', e => {
       if(e.target.id === 'tool-modal') closeModal();
     });
+
+    window.generateQRURL = generateQRURL;
+    window.generateQRText = generateQRText;
+    window.generateQRWiFi = generateQRWiFi;
+    window.resetQR = resetQR;
+    window.resetSeparar = resetSeparar;
+    window.resetJuntar = resetJuntar;
+    window.resetCompImg = resetCompImg;
+    window.resetRedImg = resetRedImg;
+    window.resetRecImg = resetRecImg;
+    window.resetGirImg = resetGirImg;
+    window.resetRbg = resetRbg;
+    window.resetMeh = resetMeh;
+    window.resetDes = resetDes;
+    window.resetMar = resetMar;
+    window.resetMem = resetMem;
   </script>
 </body>
 </html>
