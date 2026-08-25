@@ -521,7 +521,7 @@
 
   <!-- Footer -->
   <footer>
-    <p>© 2024 Tudis - PDF, Imagens, QR Code | Ferramentas 100% seguras e locais</p>
+    <p>ProdClin v6.16.0 • Desenvolvido por DSP Group adaptando para Tudis</p>
   </footer>
 
   <script>
@@ -818,31 +818,594 @@
 
     // ====== FERRAMENTAS IMAGEM ======
     function renderComprimirImg() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Comprimir Imagem está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-comp"><div class="dropzone-icon">✅</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-comp" accept="image/*"></div>
+        <div id="info-comp" style="display:none;"><img id="prev-comp" class="file-preview"><p id="meta-comp"></p></div>
+        <div class="control-group" id="ctrl-comp" style="display:none;"><label>Qualidade</label><input type="range" id="qual-comp" min="10" max="100" value="80"><small id="qual-val">80%</small></div>
+        <div class="button-group" id="btn-comp" style="display:none;"><button class="btn-secondary" onclick="resetCompImg()">Limpar</button><button class="btn-primary" id="proc-comp">✅ Comprimir</button></div>
+        <div class="result-section" id="res-comp"><a href="#" class="download-btn" id="down-comp" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-comp');
+      const inp = document.getElementById('inp-comp');
+      const btn = document.getElementById('proc-comp');
+      const qual = document.getElementById('qual-comp');
+      let img;
+
+      qual.addEventListener('input', e => document.getElementById('qual-val').textContent = e.target.value + '%');
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-comp').style.display = 'block';
+            document.getElementById('ctrl-comp').style.display = 'block';
+            document.getElementById('btn-comp').style.display = 'flex';
+            document.getElementById('prev-comp').src = e.target.result;
+            document.getElementById('meta-comp').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        c.toBlob(b => {
+          document.getElementById('down-comp').href = URL.createObjectURL(b);
+          document.getElementById('res-comp').classList.add('show');
+        }, 'image/jpeg', qual.value/100);
+      });
     }
+
+    function resetCompImg() {
+      document.getElementById('drop-comp').style.display = 'block';
+      document.getElementById('info-comp').style.display = 'none';
+      document.getElementById('ctrl-comp').style.display = 'none';
+      document.getElementById('btn-comp').style.display = 'none';
+      document.getElementById('res-comp').classList.remove('show');
+    }
+
     function renderRedimensionarImg() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Redimensionar está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-red"><div class="dropzone-icon">📐</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-red" accept="image/*"></div>
+        <div id="info-red" style="display:none;"><img id="prev-red" class="file-preview"><p id="meta-red"></p></div>
+        <div id="ctrl-red" style="display:none;"><div class="control-group"><label>Largura</label><input type="number" id="w-red" min="10" value="800"></div><div class="control-group"><label>Altura</label><input type="number" id="h-red" min="10" value="600"></div></div>
+        <div class="button-group" id="btn-red" style="display:none;"><button class="btn-secondary" onclick="resetRedImg()">Limpar</button><button class="btn-primary" id="proc-red">📐 Redimensionar</button></div>
+        <div class="result-section" id="res-red"><a href="#" class="download-btn" id="down-red" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-red');
+      const inp = document.getElementById('inp-red');
+      const btn = document.getElementById('proc-red');
+      let img;
+
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-red').style.display = 'block';
+            document.getElementById('ctrl-red').style.display = 'block';
+            document.getElementById('btn-red').style.display = 'flex';
+            document.getElementById('prev-red').src = e.target.result;
+            document.getElementById('meta-red').textContent = `${f.name} • ${img.width}x${img.height}px`;
+            document.getElementById('w-red').value = img.width;
+            document.getElementById('h-red').value = img.height;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const w = parseInt(document.getElementById('w-red').value);
+        const h = parseInt(document.getElementById('h-red').value);
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        c.toBlob(b => {
+          document.getElementById('down-red').href = URL.createObjectURL(b);
+          document.getElementById('res-red').classList.add('show');
+        }, 'image/jpeg', 0.9);
+      });
     }
+
+    function resetRedImg() {
+      document.getElementById('drop-red').style.display = 'block';
+      document.getElementById('info-red').style.display = 'none';
+      document.getElementById('ctrl-red').style.display = 'none';
+      document.getElementById('btn-red').style.display = 'none';
+      document.getElementById('res-red').classList.remove('show');
+    }
+
     function renderRecortarImg() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Recortar está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-rec"><div class="dropzone-icon">✂️</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-rec" accept="image/*"></div>
+        <div id="info-rec" style="display:none;"><img id="prev-rec" class="file-preview"><p id="meta-rec"></p></div>
+        <div id="ctrl-rec" style="display:none;"><div class="control-group"><label>X</label><input type="number" id="x-rec" min="0" value="0"></div><div class="control-group"><label>Y</label><input type="number" id="y-rec" min="0" value="0"></div><div class="control-group"><label>Largura</label><input type="number" id="w-rec" min="1" value="100"></div><div class="control-group"><label>Altura</label><input type="number" id="h-rec" min="1" value="100"></div></div>
+        <div class="button-group" id="btn-rec" style="display:none;"><button class="btn-secondary" onclick="resetRecImg()">Limpar</button><button class="btn-primary" id="proc-rec">✂️ Recortar</button></div>
+        <div class="result-section" id="res-rec"><a href="#" class="download-btn" id="down-rec" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-rec');
+      const inp = document.getElementById('inp-rec');
+      const btn = document.getElementById('proc-rec');
+      let img;
+
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-rec').style.display = 'block';
+            document.getElementById('ctrl-rec').style.display = 'block';
+            document.getElementById('btn-rec').style.display = 'flex';
+            document.getElementById('prev-rec').src = e.target.result;
+            document.getElementById('meta-rec').textContent = `${f.name} • ${img.width}x${img.height}px`;
+            document.getElementById('w-rec').value = img.width;
+            document.getElementById('h-rec').value = img.height;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const x = parseInt(document.getElementById('x-rec').value);
+        const y = parseInt(document.getElementById('y-rec').value);
+        const w = parseInt(document.getElementById('w-rec').value);
+        const h = parseInt(document.getElementById('h-rec').value);
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        c.getContext('2d').drawImage(img, x, y, w, h, 0, 0, w, h);
+        c.toBlob(b => {
+          document.getElementById('down-rec').href = URL.createObjectURL(b);
+          document.getElementById('res-rec').classList.add('show');
+        }, 'image/jpeg', 0.9);
+      });
     }
+
+    function resetRecImg() {
+      document.getElementById('drop-rec').style.display = 'block';
+      document.getElementById('info-rec').style.display = 'none';
+      document.getElementById('ctrl-rec').style.display = 'none';
+      document.getElementById('btn-rec').style.display = 'none';
+      document.getElementById('res-rec').classList.remove('show');
+    }
+
     function renderGirarImg() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Girar está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-gir"><div class="dropzone-icon">🔄</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-gir" accept="image/*"></div>
+        <div id="info-gir" style="display:none;"><img id="prev-gir" class="file-preview" style="transform: rotate(0deg);"><p id="meta-gir"></p></div>
+        <div id="ctrl-gir" style="display:none;"><div class="button-group"><button class="btn-secondary" onclick="rotateImg(-90)">⬅️ 90°</button><button class="btn-secondary" onclick="rotateImg(90)">➡️ 90°</button><button class="btn-secondary" onclick="rotateImg(180)">🔄 180°</button></div></div>
+        <div class="button-group" id="btn-gir" style="display:none;"><button class="btn-secondary" onclick="resetGirImg()">Limpar</button><button class="btn-primary" id="proc-gir">🔄 Salvar</button></div>
+        <div class="result-section" id="res-gir"><a href="#" class="download-btn" id="down-gir" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-gir');
+      const inp = document.getElementById('inp-gir');
+      const btn = document.getElementById('proc-gir');
+      let img, ang = 0;
+
+      window.rotateImg = (a) => {
+        ang += a;
+        document.getElementById('prev-gir').style.transform = `rotate(${ang}deg)`;
+      };
+
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            ang = 0;
+            drop.style.display = 'none';
+            document.getElementById('info-gir').style.display = 'block';
+            document.getElementById('ctrl-gir').style.display = 'block';
+            document.getElementById('btn-gir').style.display = 'flex';
+            document.getElementById('prev-gir').src = e.target.result;
+            document.getElementById('meta-gir').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const rad = (ang * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        const w = img.width;
+        const h = img.height;
+        const nw = Math.abs(w * cos) + Math.abs(h * sin);
+        const nh = Math.abs(w * sin) + Math.abs(h * cos);
+        const c = document.createElement('canvas');
+        c.width = nw;
+        c.height = nh;
+        const ctx = c.getContext('2d');
+        ctx.translate(nw / 2, nh / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(img, -w / 2, -h / 2);
+        c.toBlob(b => {
+          document.getElementById('down-gir').href = URL.createObjectURL(b);
+          document.getElementById('res-gir').classList.add('show');
+        }, 'image/jpeg', 0.9);
+      });
     }
+
+    function resetGirImg() {
+      document.getElementById('drop-gir').style.display = 'block';
+      document.getElementById('info-gir').style.display = 'none';
+      document.getElementById('ctrl-gir').style.display = 'none';
+      document.getElementById('btn-gir').style.display = 'none';
+      document.getElementById('res-gir').classList.remove('show');
+      document.getElementById('prev-gir').style.transform = 'none';
+    }
+
     function renderRemoverBG() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Remover Fundo está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-rbg"><div class="dropzone-icon">🎯</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-rbg" accept="image/*"></div>
+        <div id="info-rbg" style="display:none;"><canvas id="can-rbg" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-rbg"></p></div>
+        <div class="control-group" id="ctrl-rbg" style="display:none;"><label>Tolerância</label><input type="range" id="tol-rbg" min="10" max="100" value="50"><small id="tol-val">50</small></div>
+        <div class="button-group" id="btn-rbg" style="display:none;"><button class="btn-secondary" onclick="resetRbg()">Limpar</button><button class="btn-primary" id="proc-rbg">🎯 Remover</button></div>
+        <div class="result-section" id="res-rbg"><a href="#" class="download-btn" id="down-rbg" download="sem-fundo.png">⬇️ Baixar PNG</a></div>
+      `;
+      const drop = document.getElementById('drop-rbg');
+      const inp = document.getElementById('inp-rbg');
+      const btn = document.getElementById('proc-rbg');
+      const tol = document.getElementById('tol-rbg');
+      let img;
+
+      tol.addEventListener('input', e => document.getElementById('tol-val').textContent = e.target.value);
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-rbg').style.display = 'block';
+            document.getElementById('ctrl-rbg').style.display = 'block';
+            document.getElementById('btn-rbg').style.display = 'flex';
+            document.getElementById('meta-rbg').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const can = document.getElementById('can-rbg');
+        can.width = img.width;
+        can.height = img.height;
+        const ctx = can.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, can.width, can.height).data;
+        for(let i = 0; i < data.length; i += 4) {
+          const b = (data[i] + data[i+1] + data[i+2]) / 3;
+          if(b > 200) data[i+3] = 0;
+        }
+        ctx.putImageData(ctx.getImageData(0, 0, can.width, can.height), 0, 0);
+        can.style.display = 'block';
+        can.toBlob(b => {
+          document.getElementById('down-rbg').href = URL.createObjectURL(b);
+          document.getElementById('res-rbg').classList.add('show');
+        }, 'image/png');
+      });
     }
+
+    function resetRbg() {
+      document.getElementById('drop-rbg').style.display = 'block';
+      document.getElementById('info-rbg').style.display = 'none';
+      document.getElementById('ctrl-rbg').style.display = 'none';
+      document.getElementById('btn-rbg').style.display = 'none';
+      document.getElementById('res-rbg').classList.remove('show');
+      document.getElementById('can-rbg').style.display = 'none';
+    }
+
     function renderMelhorarImg() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Melhorar Imagem está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-meh"><div class="dropzone-icon">⬆️</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-meh" accept="image/*"></div>
+        <div id="info-meh" style="display:none;"><img id="prev-meh" class="file-preview"><p id="meta-meh"></p></div>
+        <div class="control-group" id="ctrl-meh" style="display:none;"><label>Escala</label><input type="range" id="esc-meh" min="1" max="4" step="0.5" value="2"><small id="esc-val">2x</small></div>
+        <div class="button-group" id="btn-meh" style="display:none;"><button class="btn-secondary" onclick="resetMeh()">Limpar</button><button class="btn-primary" id="proc-meh">⬆️ Melhorar</button></div>
+        <div class="result-section" id="res-meh"><a href="#" class="download-btn" id="down-meh" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-meh');
+      const inp = document.getElementById('inp-meh');
+      const btn = document.getElementById('proc-meh');
+      const esc = document.getElementById('esc-meh');
+      let img;
+
+      esc.addEventListener('input', e => document.getElementById('esc-val').textContent = e.target.value + 'x');
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-meh').style.display = 'block';
+            document.getElementById('ctrl-meh').style.display = 'block';
+            document.getElementById('btn-meh').style.display = 'flex';
+            document.getElementById('prev-meh').src = e.target.result;
+            document.getElementById('meta-meh').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const factor = parseFloat(esc.value);
+        const w = Math.round(img.width * factor);
+        const h = Math.round(img.height * factor);
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+        c.toBlob(b => {
+          document.getElementById('down-meh').href = URL.createObjectURL(b);
+          document.getElementById('res-meh').classList.add('show');
+        }, 'image/jpeg', 0.95);
+      });
     }
+
+    function resetMeh() {
+      document.getElementById('drop-meh').style.display = 'block';
+      document.getElementById('info-meh').style.display = 'none';
+      document.getElementById('ctrl-meh').style.display = 'none';
+      document.getElementById('btn-meh').style.display = 'none';
+      document.getElementById('res-meh').classList.remove('show');
+    }
+
     function renderDesfoque() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Desfoque está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-des"><div class="dropzone-icon">👤</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-des" accept="image/*"></div>
+        <div id="info-des" style="display:none;"><canvas id="can-des" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-des"></p></div>
+        <div class="control-group" id="ctrl-des" style="display:none;"><label>Intensidade</label><input type="range" id="int-des" min="3" max="30" value="15"><small id="int-val">15px</small></div>
+        <div class="button-group" id="btn-des" style="display:none;"><button class="btn-secondary" onclick="resetDes()">Limpar</button><button class="btn-primary" id="proc-des">👤 Desfoque</button></div>
+        <div class="result-section" id="res-des"><a href="#" class="download-btn" id="down-des" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-des');
+      const inp = document.getElementById('inp-des');
+      const btn = document.getElementById('proc-des');
+      const int = document.getElementById('int-des');
+      let img;
+
+      int.addEventListener('input', e => document.getElementById('int-val').textContent = e.target.value + 'px');
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-des').style.display = 'block';
+            document.getElementById('ctrl-des').style.display = 'block';
+            document.getElementById('btn-des').style.display = 'flex';
+            document.getElementById('meta-des').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const can = document.getElementById('can-des');
+        can.width = img.width;
+        can.height = img.height;
+        const ctx = can.getContext('2d');
+        ctx.filter = `blur(${int.value}px)`;
+        ctx.drawImage(img, 0, 0);
+        can.style.display = 'block';
+        can.toBlob(b => {
+          document.getElementById('down-des').href = URL.createObjectURL(b);
+          document.getElementById('res-des').classList.add('show');
+        }, 'image/jpeg', 0.9);
+      });
     }
+
+    function resetDes() {
+      document.getElementById('drop-des').style.display = 'block';
+      document.getElementById('info-des').style.display = 'none';
+      document.getElementById('ctrl-des').style.display = 'none';
+      document.getElementById('btn-des').style.display = 'none';
+      document.getElementById('res-des').classList.remove('show');
+      document.getElementById('can-des').style.display = 'none';
+    }
+
     function renderMarcaImg() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Marcar Imagem está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-mar"><div class="dropzone-icon">🎨</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-mar" accept="image/*"></div>
+        <div id="info-mar" style="display:none;"><canvas id="can-mar" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-mar"></p></div>
+        <div id="ctrl-mar" style="display:none;"><div class="control-group"><label>Texto</label><input type="text" id="txt-mar" value="© Tudis"></div><div class="control-group"><label>Tamanho</label><input type="range" id="tam-mar" min="10" max="100" value="30"><small id="tam-val">30px</small></div><div class="control-group"><label>Opacidade</label><input type="range" id="opa-mar" min="0.1" max="1" step="0.1" value="0.7"><small id="opa-val">70%</small></div></div>
+        <div class="button-group" id="btn-mar" style="display:none;"><button class="btn-secondary" onclick="resetMar()">Limpar</button><button class="btn-primary" id="proc-mar">🎨 Marcar</button></div>
+        <div class="result-section" id="res-mar"><a href="#" class="download-btn" id="down-mar" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-mar');
+      const inp = document.getElementById('inp-mar');
+      const btn = document.getElementById('proc-mar');
+      const tam = document.getElementById('tam-mar');
+      const opa = document.getElementById('opa-mar');
+      let img;
+
+      tam.addEventListener('input', e => document.getElementById('tam-val').textContent = e.target.value + 'px');
+      opa.addEventListener('input', e => document.getElementById('opa-val').textContent = Math.round(e.target.value * 100) + '%');
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-mar').style.display = 'block';
+            document.getElementById('ctrl-mar').style.display = 'block';
+            document.getElementById('btn-mar').style.display = 'flex';
+            document.getElementById('meta-mar').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const can = document.getElementById('can-mar');
+        can.width = img.width;
+        can.height = img.height;
+        const ctx = can.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        ctx.font = `bold ${tam.value}px Arial`;
+        ctx.fillStyle = `rgba(255,255,255,${opa.value})`;
+        ctx.textAlign = 'center';
+        ctx.fillText(document.getElementById('txt-mar').value, can.width / 2, can.height - 30);
+        can.style.display = 'block';
+        can.toBlob(b => {
+          document.getElementById('down-mar').href = URL.createObjectURL(b);
+          document.getElementById('res-mar').classList.add('show');
+        }, 'image/jpeg', 0.9);
+      });
     }
+
+    function resetMar() {
+      document.getElementById('drop-mar').style.display = 'block';
+      document.getElementById('info-mar').style.display = 'none';
+      document.getElementById('ctrl-mar').style.display = 'none';
+      document.getElementById('btn-mar').style.display = 'none';
+      document.getElementById('res-mar').classList.remove('show');
+      document.getElementById('can-mar').style.display = 'none';
+    }
+
     function renderMemes() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Gerador de Memes está pronta para implementação.</p>';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-mem"><div class="dropzone-icon">😂</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-mem" accept="image/*"></div>
+        <div id="info-mem" style="display:none;"><canvas id="can-mem" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-mem"></p></div>
+        <div id="ctrl-mem" style="display:none;"><div class="control-group"><label>Texto Superior</label><input type="text" id="top-mem" placeholder="Texto"></div><div class="control-group"><label>Texto Inferior</label><input type="text" id="bot-mem" placeholder="Texto"></div></div>
+        <div class="button-group" id="btn-mem" style="display:none;"><button class="btn-secondary" onclick="resetMem()">Limpar</button><button class="btn-primary" id="proc-mem">😂 Criar Meme</button></div>
+        <div class="result-section" id="res-mem"><a href="#" class="download-btn" id="down-mem" download="meme.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-mem');
+      const inp = document.getElementById('inp-mem');
+      const btn = document.getElementById('proc-mem');
+      let img;
+
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-mem').style.display = 'block';
+            document.getElementById('ctrl-mem').style.display = 'block';
+            document.getElementById('btn-mem').style.display = 'flex';
+            document.getElementById('meta-mem').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const can = document.getElementById('can-mem');
+        can.width = img.width;
+        can.height = img.height + 100;
+        const ctx = can.getContext('2d');
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, can.width, 50);
+        ctx.fillRect(0, can.height - 50, can.width, 50);
+        ctx.drawImage(img, 0, 50);
+        ctx.font = 'bold 30px Arial';
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 3;
+        ctx.textAlign = 'center';
+        const top = document.getElementById('top-mem').value.toUpperCase();
+        const bot = document.getElementById('bot-mem').value.toUpperCase();
+        ctx.strokeText(top, can.width / 2, 35);
+        ctx.fillText(top, can.width / 2, 35);
+        ctx.strokeText(bot, can.width / 2, can.height - 15);
+        ctx.fillText(bot, can.width / 2, can.height - 15);
+        can.style.display = 'block';
+        can.toBlob(b => {
+          document.getElementById('down-mem').href = URL.createObjectURL(b);
+          document.getElementById('res-mem').classList.add('show');
+        }, 'image/jpeg', 0.9);
+      });
+    }
+
+    function resetMem() {
+      document.getElementById('drop-mem').style.display = 'block';
+      document.getElementById('info-mem').style.display = 'none';
+      document.getElementById('ctrl-mem').style.display = 'none';
+      document.getElementById('btn-mem').style.display = 'none';
+      document.getElementById('res-mem').classList.remove('show');
+      document.getElementById('can-mem').style.display = 'none';
     }
 
     // ====== QR CODE ======
