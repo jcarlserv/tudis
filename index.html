@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tudis - PDF, Imagens, QR Code e Tudo</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <title>Tudis - PDF, Imagens, QR Code</title>
   <style>
     * {
       margin: 0;
@@ -17,57 +13,45 @@
 
     :root {
       --primary: #2563eb;
-      --primary-dark: #1e40af;
-      --primary-light: #3b82f6;
       --secondary: #f97316;
-      --success: #10b981;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
-      --gray-600: #4b5563;
-      --gray-700: #374151;
       --gray-900: #111827;
+      --gray-700: #374151;
+      --gray-600: #4b5563;
+      --gray-100: #f3f4f6;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      background: #f9fafb;
-      color: var(--gray-900);
-    }
-
-    header {
       background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      color: var(--gray-900);
+      line-height: 1.6;
     }
 
-    .header-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 1rem 2rem;
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      background: white;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .logo-section {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
-    .logo-image {
-      width: 50px;
-      height: 50px;
-      border-radius: 10px;
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
       object-fit: cover;
-      box-shadow: 0 2px 8px rgba(37,99,235,0.2);
-    }
-
-    .logo-text {
-      display: flex;
-      flex-direction: column;
     }
 
     .logo-name {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: 800;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       -webkit-background-clip: text;
@@ -75,1476 +59,298 @@
       background-clip: text;
     }
 
-    .logo-tagline {
-      font-size: 0.75rem;
-      color: var(--gray-600);
-      font-weight: 600;
-    }
-
-    .category-tabs {
-      background: white;
-      border-bottom: 1px solid var(--gray-200);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .tabs-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 2rem;
+    nav {
       display: flex;
-      gap: 0;
-    }
-
-    .tab {
-      padding: 1rem 1.5rem;
-      background: none;
-      border: none;
-      border-bottom: 3px solid transparent;
-      color: var(--gray-600);
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
-      white-space: nowrap;
-    }
-
-    .tab:hover {
-      color: var(--primary);
-      background: rgba(37,99,235,0.05);
-    }
-
-    .tab.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 3rem 2rem;
-    }
-
-    .container h1 {
-      font-size: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .tool-card {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: 12px;
-      padding: 1.5rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .tool-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 24px rgba(37,99,235,0.15);
-      border-color: var(--primary-light);
-    }
-
-    .tool-icon {
-      font-size: 2.5rem;
-    }
-
-    .tool-name {
-      font-weight: 600;
-      font-size: 1rem;
-    }
-
-    .tool-description {
-      font-size: 0.85rem;
-      color: var(--gray-600);
-      line-height: 1.4;
-      flex-grow: 1;
-    }
-
-    .tool-badge {
-      display: inline-block;
-      background: #fbbf24;
-      color: white;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      width: fit-content;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 100;
-      overflow-y: auto;
-    }
-
-    .modal.show {
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding-top: 2rem;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 700px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      margin-bottom: 2rem;
-    }
-
-    .modal-header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 2rem;
-      display: flex;
-      justify-content: space-between;
+      gap: 2rem;
       align-items: center;
     }
 
-    .modal-header h2 {
-      font-size: 1.8rem;
-      margin: 0;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-
-    .modal-body {
-      padding: 2rem;
-    }
-
-    .dropzone {
-      border: 2px dashed var(--primary-light);
-      border-radius: 12px;
-      padding: 2rem;
-      text-align: center;
-      background: rgba(37,99,235,0.05);
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-bottom: 1.5rem;
-    }
-
-    .dropzone:hover,
-    .dropzone.drag-over {
-      border-color: var(--primary);
-      background: rgba(37,99,235,0.1);
-    }
-
-    .dropzone-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-    }
-
-    .dropzone-text {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .dropzone-subtext {
+    nav a {
       color: var(--gray-600);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
       font-size: 0.95rem;
     }
 
-    .dropzone-subtext strong {
+    nav a:hover {
       color: var(--primary);
     }
 
-    input[type="file"] {
-      display: none;
+    .btn-trial {
+      background: var(--primary);
+      color: white;
+      padding: 0.6rem 1.5rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
     }
 
-    .file-preview {
-      max-width: 100%;
-      max-height: 300px;
-      border-radius: 8px;
-      margin: 1rem 0;
+    .btn-trial:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
     }
 
-    .button-group {
+    /* Hero Section */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      padding: 4rem 3rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .hero-content h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      color: var(--gray-900);
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      color: var(--gray-600);
+      margin-bottom: 2rem;
+      line-height: 1.8;
+      max-width: 500px;
+    }
+
+    .hero-buttons {
       display: flex;
       gap: 1rem;
-      margin-top: 1.5rem;
       flex-wrap: wrap;
-    }
-
-    button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
-      flex: 1;
-      min-height: 44px;
+      padding: 0.9rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
     }
 
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(37,99,235,0.3);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
     }
 
     .btn-secondary {
-      background: var(--gray-100);
-      color: var(--gray-900);
-      border: 1px solid var(--gray-300);
+      background: white;
+      color: var(--primary);
+      padding: 0.9rem 2rem;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
     }
 
     .btn-secondary:hover {
-      background: var(--gray-200);
+      background: var(--gray-100);
     }
 
-    .result-section {
-      background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(34,197,94,0.1));
-      border: 1px solid rgba(16,185,129,0.3);
-      padding: 1.5rem;
-      border-radius: 12px;
-      margin-top: 1.5rem;
-      display: none;
+    .hero-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-image img {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+      border-radius: 16px;
+      object-fit: contain;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .decorative {
+      position: absolute;
+      font-size: 3rem;
+      opacity: 0.3;
+    }
+
+    .dec-1 { top: 20px; right: 40px; }
+    .dec-2 { bottom: 30px; left: 20px; }
+    .dec-3 { top: 40%; right: -30px; }
+
+    /* Features */
+    .features {
+      background: var(--gray-100);
+      padding: 4rem 3rem;
       text-align: center;
     }
 
-    .result-section.show {
-      display: block;
+    .features h2 {
+      font-size: 2.5rem;
+      margin-bottom: 3rem;
+      color: var(--gray-900);
     }
 
-    .result-icon {
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .feature-icon {
       font-size: 3rem;
       margin-bottom: 1rem;
     }
 
-    .result-title {
-      font-size: 1.3rem;
-      font-weight: 700;
+    .feature-card h3 {
+      font-size: 1.2rem;
       margin-bottom: 0.5rem;
-      color: var(--success);
     }
 
-    .download-btn {
-      background: linear-gradient(135deg, var(--success), #34d399);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.3s;
-      border: none;
-      cursor: pointer;
+    .feature-card p {
+      color: var(--gray-600);
+      font-size: 0.95rem;
     }
 
-    .download-btn:hover {
-      transform: scale(1.05);
-    }
-
-    .status-message {
-      display: none;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      align-items: center;
-      gap: 0.75rem;
-      background: rgba(37,99,235,0.1);
-      color: var(--primary);
-    }
-
-    .status-message.show {
-      display: flex;
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(37,99,235,0.3);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .info-box {
-      background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(249,115,22,0.1));
-      border-left: 4px solid var(--primary);
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1.5rem;
-      color: var(--gray-700);
-      font-size: 0.9rem;
-    }
-
-    .control-group {
-      margin-bottom: 1rem;
-    }
-
-    .control-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .control-group input[type="range"],
-    .control-group input[type="text"],
-    .control-group input[type="number"],
-    .control-group textarea {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid var(--gray-300);
-      border-radius: 4px;
-      font-family: inherit;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 150px;
-      font-family: monospace;
-    }
-
-    canvas {
-      max-width: 100%;
-      border-radius: 8px;
-      margin: 1rem 0;
-    }
-
-    #qr-display {
-      text-align: center;
-      margin: 2rem 0;
-      display: none;
-    }
-
-    #qr-display.show {
-      display: block;
-    }
-
-    @media (max-width: 768px) {
-      .tools-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 1rem;
-      }
-      .modal-content {
-        width: 95%;
-      }
-    }
-
+    /* Footer */
     footer {
       background: var(--gray-900);
       color: white;
       text-align: center;
       padding: 2rem;
-      margin-top: 4rem;
       font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 1rem;
+      }
+
+      nav {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 2rem 1rem;
+      }
+
+      .hero-content h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+      }
+
+      .btn-primary, .btn-secondary {
+        width: 100%;
+        text-align: center;
+      }
     }
   </style>
 </head>
 <body>
   <!-- Header -->
   <header>
-    <div class="header-content">
-      <img src="https://static.wixstatic.com/media/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png/v1/fill/w_474,h_598,al_c,lg_1,q_85,enc_avif,quality_auto/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png" alt="Tudis" class="logo-image">
-      <div class="logo-text">
-        <div class="logo-name">Tudis</div>
-        <div class="logo-tagline">PDF, Imagens, QR Code e Tudo</div>
-      </div>
+    <div class="logo-section">
+      <img src="https://static.wixstatic.com/media/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png/v1/fill/w_474,h_598,al_c,lg_1,q_85,enc_avif,quality_auto/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png" alt="Tudis" class="logo-img">
+      <div class="logo-name">Tudis</div>
     </div>
+    <nav>
+      <a href="#tools">Ferramentas</a>
+      <a href="#features">Recursos</a>
+      <a href="#pricing">Preço</a>
+      <a href="tudis-final.html" class="btn-trial">Iniciar</a>
+    </nav>
   </header>
 
-  <!-- Tabs -->
-  <div class="category-tabs">
-    <div class="tabs-container" id="tabs-container">
-      <button class="tab active" data-category="todas">Todas</button>
-      <button class="tab" data-category="pdf">PDF</button>
-      <button class="tab" data-category="imagem">Imagens</button>
-      <button class="tab" data-category="qrcode">QR Code</button>
-    </div>
-  </div>
-
-  <!-- Main -->
-  <div class="container">
-    <h1 id="category-title">Todas as ferramentas</h1>
-    <div class="tools-grid" id="tools-grid"></div>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal" id="tool-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modal-title"></h2>
-        <button class="close-btn" onclick="closeModal()">&times;</button>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Fazemos documentos fáceis.</h1>
+      <p>Todas as ferramentas que você precisa para ser mais produtivo e trabalhar de forma inteligente com documentos.</p>
+      <div class="hero-buttons">
+        <a href="tudis-final.html" class="btn-primary">🚀 Começar Grátis</a>
+        <a href="#tools" class="btn-secondary">📖 Explorar Ferramentas</a>
       </div>
-      <div class="modal-body" id="modal-body"></div>
     </div>
-  </div>
+    <div class="hero-image">
+      <img src="https://static.wixstatic.com/media/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png/v1/fill/w_474,h_598,al_c,lg_1,q_85,enc_avif,quality_auto/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png" alt="Tudis">
+      <span class="decorative dec-1">📄</span>
+      <span class="decorative dec-2">🖼️</span>
+      <span class="decorative dec-3">🎯</span>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="tools">
+    <h2>As Ferramentas Mais Populares</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📎</div>
+        <h3>Juntar PDF</h3>
+        <p>Combine múltiplos PDFs em um único documento</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✂️</div>
+        <h3>Separar PDF</h3>
+        <p>Separe cada página em arquivo individual</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗜️</div>
+        <h3>Comprimir PDF</h3>
+        <p>Reduza o tamanho mantendo qualidade</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖼️</div>
+        <h3>Editar Imagens</h3>
+        <p>Comprima, redimensione e edite imagens</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Remover Fundo</h3>
+        <p>Remova fundos com alta precisão</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>QR Code</h3>
+        <p>Gere QR codes para URLs, texto e WiFi</p>
+      </div>
+    </div>
+  </section>
 
   <!-- Footer -->
   <footer>
     <p>Tudis v6.16.0 • Desenvolvido por DSP Group adaptando para Tudis</p>
   </footer>
-
-  <script>
-    const { PDFDocument } = PDFLib;
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-    const tools = [
-      // PDF
-      {id:'separar-pdf',icon:'✂️',name:'Separar PDF',desc:'Separa cada página em arquivo',category:'pdf'},
-      {id:'juntar-pdf',icon:'📎',name:'Juntar PDF',desc:'Combina múltiplos PDFs',category:'pdf'},
-      {id:'comprimir-pdf',icon:'🗜️',name:'Comprimir PDF',desc:'Reduz tamanho do PDF',category:'pdf'},
-      {id:'dividir-pdf',icon:'📊',name:'Dividir PDF',desc:'Divide PDF por intervalo',category:'pdf'},
-      {id:'rodar-pdf',icon:'🔄',name:'Rodar PDF',desc:'Rotaciona páginas',category:'pdf'},
-      {id:'numerar-pdf',icon:'#️⃣',name:'Numerar Páginas',desc:'Adiciona números',category:'pdf'},
-      {id:'marca-pdf',icon:'💧',name:'Marca d\'água',desc:'Adiciona marca ao PDF',category:'pdf'},
-      {id:'proteger-pdf',icon:'🔐',name:'Proteger PDF',desc:'Adiciona senha',category:'pdf'},
-      {id:'desbloquear-pdf',icon:'🔓',name:'Desbloquear PDF',desc:'Remove proteção',category:'pdf'},
-      
-      // Imagens
-      {id:'comprimir-img',icon:'✅',name:'Comprimir Imagem',desc:'Reduz tamanho',category:'imagem'},
-      {id:'redimensionar-img',icon:'📐',name:'Redimensionar',desc:'Ajusta dimensões',category:'imagem'},
-      {id:'recortar-img',icon:'✂️',name:'Recortar Imagem',desc:'Recorta áreas',category:'imagem'},
-      {id:'girar-img',icon:'🔄',name:'Girar Imagem',desc:'Rotaciona imagem',category:'imagem'},
-      {id:'remover-bg',icon:'🎯',name:'Remover Fundo',desc:'Remove fundo branco',category:'imagem'},
-      {id:'melhorar-img',icon:'⬆️',name:'Melhorar Imagem',desc:'Aumenta resolução',category:'imagem'},
-      {id:'desfoque-img',icon:'👤',name:'Desfoque Facial',desc:'Desfoca rostos',category:'imagem'},
-      {id:'marca-img',icon:'🎨',name:'Marcar Imagem',desc:'Adiciona marca d\'água',category:'imagem'},
-      {id:'memes-img',icon:'😂',name:'Gerador de Memes',desc:'Cria memes',category:'imagem'},
-      
-      // QR Code
-      {id:'qr-url',icon:'🌐',name:'QR Code URL',desc:'Gera QR de URL',category:'qrcode'},
-      {id:'qr-texto',icon:'📝',name:'QR Code Texto',desc:'Gera QR de texto',category:'qrcode'},
-      {id:'qr-wifi',icon:'📡',name:'QR Code WiFi',desc:'Gera QR de WiFi',category:'qrcode'},
-    ];
-
-    let rotationAngle = 0;
-
-    function rotateImg(angle) {
-      rotationAngle += angle;
-      const preview = document.getElementById('prev-gir');
-      if(preview) preview.style.transform = `rotate(${rotationAngle}deg)`;
-    }
-
-    function initializeUI() {
-      renderTools('todas');
-      setupTabs();
-    }
-
-    function setupTabs() {
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          renderTools(tab.dataset.category);
-        });
-      });
-    }
-
-    function renderTools(category) {
-      const grid = document.getElementById('tools-grid');
-      grid.innerHTML = '';
-
-      const filtered = category === 'todas' ? tools : tools.filter(t => t.category === category);
-
-      const categories = {'todas':'Todas','pdf':'Ferramentas PDF','imagem':'Edição de Imagens','qrcode':'QR Code'};
-      document.getElementById('category-title').textContent = categories[category];
-
-      filtered.forEach(tool => {
-        const card = document.createElement('div');
-        card.className = 'tool-card';
-        card.innerHTML = `
-          <div class="tool-icon">${tool.icon}</div>
-          <div class="tool-name">${tool.name}</div>
-          <div class="tool-description">${tool.desc}</div>
-        `;
-        card.addEventListener('click', () => openToolModal(tool));
-        grid.appendChild(card);
-      });
-    }
-
-    function openToolModal(tool) {
-      document.getElementById('modal-title').textContent = tool.name;
-      
-      if(tool.id === 'separar-pdf') renderSepararPDF();
-      else if(tool.id === 'juntar-pdf') renderJuntarPDF();
-      else if(tool.id === 'comprimir-pdf') renderComprimirPDF();
-      else if(tool.id === 'dividir-pdf') renderDividirPDF();
-      else if(tool.id === 'rodar-pdf') renderRodarPDF();
-      else if(tool.id === 'numerar-pdf') renderNumerarPDF();
-      else if(tool.id === 'marca-pdf') renderMarcaPDF();
-      else if(tool.id === 'proteger-pdf') renderProtegerPDF();
-      else if(tool.id === 'desbloquear-pdf') renderDesbloquearPDF();
-      else if(tool.id === 'comprimir-img') renderComprimirImg();
-      else if(tool.id === 'redimensionar-img') renderRedimensionarImg();
-      else if(tool.id === 'recortar-img') renderRecortarImg();
-      else if(tool.id === 'girar-img') renderGirarImg();
-      else if(tool.id === 'remover-bg') renderRemoverBG();
-      else if(tool.id === 'melhorar-img') renderMelhorarImg();
-      else if(tool.id === 'desfoque-img') renderDesfoque();
-      else if(tool.id === 'marca-img') renderMarcaImg();
-      else if(tool.id === 'memes-img') renderMemes();
-      else if(tool.id === 'qr-url') renderQRURL();
-      else if(tool.id === 'qr-texto') renderQRTexto();
-      else if(tool.id === 'qr-wifi') renderQRWiFi();
-
-      document.getElementById('tool-modal').classList.add('show');
-    }
-
-    function closeModal() {
-      document.getElementById('tool-modal').classList.remove('show');
-    }
-
-    // ====== FERRAMENTAS PDF ======
-    
-    function renderSepararPDF() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-sep">
-          <div class="dropzone-icon">📤</div>
-          <div class="dropzone-text">Arraste seu PDF</div>
-          <div class="dropzone-subtext">ou <strong>clique para escolher</strong></div>
-          <input type="file" id="inp-sep" accept="application/pdf">
-        </div>
-        <div id="info-sep" style="display:none;">
-          <p id="meta-sep"></p>
-        </div>
-        <div class="button-group" id="btn-sep" style="display:none;">
-          <button class="btn-secondary" onclick="resetSeparar()">Limpar</button>
-          <button class="btn-primary" id="proc-sep">✂️ Separar</button>
-        </div>
-        <div class="result-section" id="res-sep">
-          <div class="result-icon">✅</div>
-          <div class="result-title">Sucesso!</div>
-          <p id="res-txt-sep"></p>
-          <a href="#" class="download-btn" id="down-sep" download="paginas.zip">⬇️ Baixar ZIP</a>
-        </div>
-      `;
-      setupSepararPDF();
-    }
-
-    function setupSepararPDF() {
-      const drop = document.getElementById('drop-sep');
-      const inp = document.getElementById('inp-sep');
-      const btn = document.getElementById('proc-sep');
-      let file = null;
-
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadFile(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadFile(e.target.files[0]));
-
-      async function loadFile(f) {
-        if(!f || f.type !== 'application/pdf') return alert('Selecione um PDF');
-        file = f;
-        drop.style.display = 'none';
-        document.getElementById('info-sep').style.display = 'block';
-        document.getElementById('btn-sep').style.display = 'flex';
-        document.getElementById('meta-sep').textContent = `${f.name} • ${(f.size/1024/1024).toFixed(1)}MB`;
-        
-        const buf = await f.arrayBuffer();
-        const pdf = await PDFDocument.load(buf, {ignoreEncryption: true});
-        btn.disabled = false;
-        btn.textContent = `✂️ Separar ${pdf.getPageCount()} página(s)`;
-      }
-
-      btn.addEventListener('click', async () => {
-        if(!file) return;
-        btn.disabled = true;
-        const buf = await file.arrayBuffer();
-        const pdf = await PDFDocument.load(buf, {ignoreEncryption: true});
-        const zip = new JSZip();
-        const count = pdf.getPageCount();
-
-        for(let i = 0; i < count; i++) {
-          const newPdf = await PDFDocument.create();
-          const [page] = await newPdf.copyPages(pdf, [i]);
-          newPdf.addPage(page);
-          const bytes = await newPdf.save();
-          zip.file(`pagina-${String(i+1).padStart(3,'0')}.pdf`, bytes);
-        }
-
-        const blob = await zip.generateAsync({type:'blob'});
-        const url = URL.createObjectURL(blob);
-        document.getElementById('down-sep').href = url;
-        document.getElementById('res-txt-sep').textContent = `✅ ${count} página(s) separada(s)!`;
-        document.getElementById('res-sep').classList.add('show');
-        btn.disabled = false;
-      });
-    }
-
-    function resetSeparar() {
-      document.getElementById('drop-sep').style.display = 'block';
-      document.getElementById('info-sep').style.display = 'none';
-      document.getElementById('btn-sep').style.display = 'none';
-      document.getElementById('res-sep').classList.remove('show');
-      document.getElementById('inp-sep').value = '';
-    }
-
-    function renderJuntarPDF() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-jun">
-          <div class="dropzone-icon">📎</div>
-          <div class="dropzone-text">Arraste seus PDFs</div>
-          <div class="dropzone-subtext">ou <strong>clique para escolher múltiplos</strong></div>
-          <input type="file" id="inp-jun" accept="application/pdf" multiple>
-        </div>
-        <div id="info-jun" style="display:none;">
-          <div id="list-jun"></div>
-        </div>
-        <div class="button-group" id="btn-jun" style="display:none;">
-          <button class="btn-secondary" onclick="resetJuntar()">Limpar</button>
-          <button class="btn-primary" id="proc-jun">📎 Juntar</button>
-        </div>
-        <div class="result-section" id="res-jun">
-          <div class="result-icon">✅</div>
-          <div class="result-title">Sucesso!</div>
-          <p id="res-txt-jun"></p>
-          <a href="#" class="download-btn" id="down-jun" download="arquivo-unido.pdf">⬇️ Baixar PDF</a>
-        </div>
-      `;
-      setupJuntarPDF();
-    }
-
-    function setupJuntarPDF() {
-      const drop = document.getElementById('drop-jun');
-      const inp = document.getElementById('inp-jun');
-      const btn = document.getElementById('proc-jun');
-      let files = [];
-
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadFiles(e.dataTransfer.files);});
-      inp.addEventListener('change', e => loadFiles(e.target.files));
-
-      function loadFiles(f) {
-        files = Array.from(f).filter(x => x.type === 'application/pdf');
-        if(!files.length) return alert('Selecione PDFs');
-        drop.style.display = 'none';
-        document.getElementById('info-jun').style.display = 'block';
-        document.getElementById('btn-jun').style.display = 'flex';
-        
-        let html = '<strong>Arquivos:</strong><ul style="margin-top:0.5rem;">';
-        files.forEach((f, i) => html += `<li>${i+1}. ${f.name}</li>`);
-        html += '</ul>';
-        document.getElementById('list-jun').innerHTML = html;
-        btn.disabled = false;
-      }
-
-      btn.addEventListener('click', async () => {
-        if(!files.length) return;
-        btn.disabled = true;
-        const merged = await PDFDocument.create();
-
-        for(let f of files) {
-          const buf = await f.arrayBuffer();
-          const pdf = await PDFDocument.load(buf, {ignoreEncryption: true});
-          const pages = await merged.copyPages(pdf, pdf.getPageIndices());
-          pages.forEach(p => merged.addPage(p));
-        }
-
-        const bytes = await merged.save();
-        const blob = new Blob([bytes], {type: 'application/pdf'});
-        const url = URL.createObjectURL(blob);
-        document.getElementById('down-jun').href = url;
-        document.getElementById('res-txt-jun').textContent = `✅ ${files.length} PDF(s) juntado(s)!`;
-        document.getElementById('res-jun').classList.add('show');
-        btn.disabled = false;
-      });
-    }
-
-    function resetJuntar() {
-      document.getElementById('drop-jun').style.display = 'block';
-      document.getElementById('info-jun').style.display = 'none';
-      document.getElementById('btn-jun').style.display = 'none';
-      document.getElementById('res-jun').classList.remove('show');
-      document.getElementById('inp-jun').value = '';
-    }
-
-    // Placeholder para outras ferramentas PDF
-    function renderComprimirPDF() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Comprimir PDF está pronta para implementação.</p>';
-    }
-    function renderDividirPDF() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Dividir PDF está pronta para implementação.</p>';
-    }
-    function renderRodarPDF() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Rodar PDF está pronta para implementação.</p>';
-    }
-    function renderNumerarPDF() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Numerar Páginas está pronta para implementação.</p>';
-    }
-    function renderMarcaPDF() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Marca d\'água está pronta para implementação.</p>';
-    }
-    function renderProtegerPDF() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Proteger PDF está pronta para implementação.</p>';
-    }
-    function renderDesbloquearPDF() {
-      document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta Desbloquear PDF está pronta para implementação.</p>';
-    }
-
-    // ====== FERRAMENTAS IMAGEM ======
-    function renderComprimirImg() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-comp"><div class="dropzone-icon">✅</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-comp" accept="image/*"></div>
-        <div id="info-comp" style="display:none;"><img id="prev-comp" class="file-preview"><p id="meta-comp"></p></div>
-        <div class="control-group" id="ctrl-comp" style="display:none;"><label>Qualidade</label><input type="range" id="qual-comp" min="10" max="100" value="80"><small id="qual-val">80%</small></div>
-        <div class="button-group" id="btn-comp" style="display:none;"><button class="btn-secondary" onclick="resetCompImg()">Limpar</button><button class="btn-primary" id="proc-comp">✅ Comprimir</button></div>
-        <div class="result-section" id="res-comp"><a href="#" class="download-btn" id="down-comp" download="imagem.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-comp');
-      const inp = document.getElementById('inp-comp');
-      const btn = document.getElementById('proc-comp');
-      const qual = document.getElementById('qual-comp');
-      let img;
-
-      qual.addEventListener('input', e => document.getElementById('qual-val').textContent = e.target.value + '%');
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-comp').style.display = 'block';
-            document.getElementById('ctrl-comp').style.display = 'block';
-            document.getElementById('btn-comp').style.display = 'flex';
-            document.getElementById('prev-comp').src = e.target.result;
-            document.getElementById('meta-comp').textContent = `${f.name} • ${img.width}x${img.height}px`;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const c = document.createElement('canvas');
-        c.width = img.width;
-        c.height = img.height;
-        c.getContext('2d').drawImage(img, 0, 0);
-        c.toBlob(b => {
-          document.getElementById('down-comp').href = URL.createObjectURL(b);
-          document.getElementById('res-comp').classList.add('show');
-        }, 'image/jpeg', qual.value/100);
-      });
-    }
-
-    function resetCompImg() {
-      document.getElementById('drop-comp').style.display = 'block';
-      document.getElementById('info-comp').style.display = 'none';
-      document.getElementById('ctrl-comp').style.display = 'none';
-      document.getElementById('btn-comp').style.display = 'none';
-      document.getElementById('res-comp').classList.remove('show');
-    }
-
-    function renderRedimensionarImg() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-red"><div class="dropzone-icon">📐</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-red" accept="image/*"></div>
-        <div id="info-red" style="display:none;"><img id="prev-red" class="file-preview"><p id="meta-red"></p></div>
-        <div id="ctrl-red" style="display:none;"><div class="control-group"><label>Largura</label><input type="number" id="w-red" min="10" value="800"></div><div class="control-group"><label>Altura</label><input type="number" id="h-red" min="10" value="600"></div></div>
-        <div class="button-group" id="btn-red" style="display:none;"><button class="btn-secondary" onclick="resetRedImg()">Limpar</button><button class="btn-primary" id="proc-red">📐 Redimensionar</button></div>
-        <div class="result-section" id="res-red"><a href="#" class="download-btn" id="down-red" download="imagem.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-red');
-      const inp = document.getElementById('inp-red');
-      const btn = document.getElementById('proc-red');
-      let img;
-
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-red').style.display = 'block';
-            document.getElementById('ctrl-red').style.display = 'block';
-            document.getElementById('btn-red').style.display = 'flex';
-            document.getElementById('prev-red').src = e.target.result;
-            document.getElementById('meta-red').textContent = `${f.name} • ${img.width}x${img.height}px`;
-            document.getElementById('w-red').value = img.width;
-            document.getElementById('h-red').value = img.height;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const w = parseInt(document.getElementById('w-red').value);
-        const h = parseInt(document.getElementById('h-red').value);
-        const c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        c.toBlob(b => {
-          document.getElementById('down-red').href = URL.createObjectURL(b);
-          document.getElementById('res-red').classList.add('show');
-        }, 'image/jpeg', 0.9);
-      });
-    }
-
-    function resetRedImg() {
-      document.getElementById('drop-red').style.display = 'block';
-      document.getElementById('info-red').style.display = 'none';
-      document.getElementById('ctrl-red').style.display = 'none';
-      document.getElementById('btn-red').style.display = 'none';
-      document.getElementById('res-red').classList.remove('show');
-    }
-
-    function renderRecortarImg() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-rec"><div class="dropzone-icon">✂️</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-rec" accept="image/*"></div>
-        <div id="info-rec" style="display:none;"><img id="prev-rec" class="file-preview"><p id="meta-rec"></p></div>
-        <div id="ctrl-rec" style="display:none;"><div class="control-group"><label>X</label><input type="number" id="x-rec" min="0" value="0"></div><div class="control-group"><label>Y</label><input type="number" id="y-rec" min="0" value="0"></div><div class="control-group"><label>Largura</label><input type="number" id="w-rec" min="1" value="100"></div><div class="control-group"><label>Altura</label><input type="number" id="h-rec" min="1" value="100"></div></div>
-        <div class="button-group" id="btn-rec" style="display:none;"><button class="btn-secondary" onclick="resetRecImg()">Limpar</button><button class="btn-primary" id="proc-rec">✂️ Recortar</button></div>
-        <div class="result-section" id="res-rec"><a href="#" class="download-btn" id="down-rec" download="imagem.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-rec');
-      const inp = document.getElementById('inp-rec');
-      const btn = document.getElementById('proc-rec');
-      let img;
-
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-rec').style.display = 'block';
-            document.getElementById('ctrl-rec').style.display = 'block';
-            document.getElementById('btn-rec').style.display = 'flex';
-            document.getElementById('prev-rec').src = e.target.result;
-            document.getElementById('meta-rec').textContent = `${f.name} • ${img.width}x${img.height}px`;
-            document.getElementById('w-rec').value = img.width;
-            document.getElementById('h-rec').value = img.height;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const x = parseInt(document.getElementById('x-rec').value);
-        const y = parseInt(document.getElementById('y-rec').value);
-        const w = parseInt(document.getElementById('w-rec').value);
-        const h = parseInt(document.getElementById('h-rec').value);
-        const c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        c.getContext('2d').drawImage(img, x, y, w, h, 0, 0, w, h);
-        c.toBlob(b => {
-          document.getElementById('down-rec').href = URL.createObjectURL(b);
-          document.getElementById('res-rec').classList.add('show');
-        }, 'image/jpeg', 0.9);
-      });
-    }
-
-    function resetRecImg() {
-      document.getElementById('drop-rec').style.display = 'block';
-      document.getElementById('info-rec').style.display = 'none';
-      document.getElementById('ctrl-rec').style.display = 'none';
-      document.getElementById('btn-rec').style.display = 'none';
-      document.getElementById('res-rec').classList.remove('show');
-    }
-
-    function renderGirarImg() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-gir"><div class="dropzone-icon">🔄</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-gir" accept="image/*"></div>
-        <div id="info-gir" style="display:none;"><img id="prev-gir" class="file-preview" style="transform: rotate(0deg);"><p id="meta-gir"></p></div>
-        <div id="ctrl-gir" style="display:none;"><div class="button-group"><button class="btn-secondary" onclick="rotateImg(-90)">⬅️ 90°</button><button class="btn-secondary" onclick="rotateImg(90)">➡️ 90°</button><button class="btn-secondary" onclick="rotateImg(180)">🔄 180°</button></div></div>
-        <div class="button-group" id="btn-gir" style="display:none;"><button class="btn-secondary" onclick="resetGirImg()">Limpar</button><button class="btn-primary" id="proc-gir">🔄 Salvar</button></div>
-        <div class="result-section" id="res-gir"><a href="#" class="download-btn" id="down-gir" download="imagem.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-gir');
-      const inp = document.getElementById('inp-gir');
-      const btn = document.getElementById('proc-gir');
-      let img, ang = 0;
-
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            rotationAngle = 0;
-            drop.style.display = 'none';
-            document.getElementById('info-gir').style.display = 'block';
-            document.getElementById('ctrl-gir').style.display = 'block';
-            document.getElementById('btn-gir').style.display = 'flex';
-            document.getElementById('prev-gir').src = e.target.result;
-            document.getElementById('meta-gir').textContent = `${f.name} • ${img.width}x${img.height}px`;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const rad = (rotationAngle * Math.PI) / 180;
-        const cos = Math.cos(rad);
-        const sin = Math.sin(rad);
-        const w = img.width;
-        const h = img.height;
-        const nw = Math.abs(w * cos) + Math.abs(h * sin);
-        const nh = Math.abs(w * sin) + Math.abs(h * cos);
-        const c = document.createElement('canvas');
-        c.width = nw;
-        c.height = nh;
-        const ctx = c.getContext('2d');
-        ctx.translate(nw / 2, nh / 2);
-        ctx.rotate(rad);
-        ctx.drawImage(img, -w / 2, -h / 2);
-        c.toBlob(b => {
-          document.getElementById('down-gir').href = URL.createObjectURL(b);
-          document.getElementById('res-gir').classList.add('show');
-        }, 'image/jpeg', 0.9);
-      });
-    }
-
-    function resetGirImg() {
-      document.getElementById('drop-gir').style.display = 'block';
-      document.getElementById('info-gir').style.display = 'none';
-      document.getElementById('ctrl-gir').style.display = 'none';
-      document.getElementById('btn-gir').style.display = 'none';
-      document.getElementById('res-gir').classList.remove('show');
-      document.getElementById('prev-gir').style.transform = 'none';
-      rotationAngle = 0;
-    }
-
-    function renderRemoverBG() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-rbg"><div class="dropzone-icon">🎯</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-rbg" accept="image/*"></div>
-        <div id="info-rbg" style="display:none;"><canvas id="can-rbg" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-rbg"></p></div>
-        <div class="control-group" id="ctrl-rbg" style="display:none;"><label>Tolerância</label><input type="range" id="tol-rbg" min="10" max="100" value="50"><small id="tol-val">50</small></div>
-        <div class="button-group" id="btn-rbg" style="display:none;"><button class="btn-secondary" onclick="resetRbg()">Limpar</button><button class="btn-primary" id="proc-rbg">🎯 Remover</button></div>
-        <div class="result-section" id="res-rbg"><a href="#" class="download-btn" id="down-rbg" download="sem-fundo.png">⬇️ Baixar PNG</a></div>
-      `;
-      const drop = document.getElementById('drop-rbg');
-      const inp = document.getElementById('inp-rbg');
-      const btn = document.getElementById('proc-rbg');
-      const tol = document.getElementById('tol-rbg');
-      let img;
-
-      tol.addEventListener('input', e => document.getElementById('tol-val').textContent = e.target.value);
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-rbg').style.display = 'block';
-            document.getElementById('ctrl-rbg').style.display = 'block';
-            document.getElementById('btn-rbg').style.display = 'flex';
-            document.getElementById('meta-rbg').textContent = `${f.name} • ${img.width}x${img.height}px`;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const can = document.getElementById('can-rbg');
-        can.width = img.width;
-        can.height = img.height;
-        const ctx = can.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const data = ctx.getImageData(0, 0, can.width, can.height).data;
-        for(let i = 0; i < data.length; i += 4) {
-          const b = (data[i] + data[i+1] + data[i+2]) / 3;
-          if(b > 200) data[i+3] = 0;
-        }
-        ctx.putImageData(ctx.getImageData(0, 0, can.width, can.height), 0, 0);
-        can.style.display = 'block';
-        can.toBlob(b => {
-          document.getElementById('down-rbg').href = URL.createObjectURL(b);
-          document.getElementById('res-rbg').classList.add('show');
-        }, 'image/png');
-      });
-    }
-
-    function resetRbg() {
-      document.getElementById('drop-rbg').style.display = 'block';
-      document.getElementById('info-rbg').style.display = 'none';
-      document.getElementById('ctrl-rbg').style.display = 'none';
-      document.getElementById('btn-rbg').style.display = 'none';
-      document.getElementById('res-rbg').classList.remove('show');
-      document.getElementById('can-rbg').style.display = 'none';
-    }
-
-    function renderMelhorarImg() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-meh"><div class="dropzone-icon">⬆️</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-meh" accept="image/*"></div>
-        <div id="info-meh" style="display:none;"><img id="prev-meh" class="file-preview"><p id="meta-meh"></p></div>
-        <div class="control-group" id="ctrl-meh" style="display:none;"><label>Escala</label><input type="range" id="esc-meh" min="1" max="4" step="0.5" value="2"><small id="esc-val">2x</small></div>
-        <div class="button-group" id="btn-meh" style="display:none;"><button class="btn-secondary" onclick="resetMeh()">Limpar</button><button class="btn-primary" id="proc-meh">⬆️ Melhorar</button></div>
-        <div class="result-section" id="res-meh"><a href="#" class="download-btn" id="down-meh" download="imagem.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-meh');
-      const inp = document.getElementById('inp-meh');
-      const btn = document.getElementById('proc-meh');
-      const esc = document.getElementById('esc-meh');
-      let img;
-
-      esc.addEventListener('input', e => document.getElementById('esc-val').textContent = e.target.value + 'x');
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-meh').style.display = 'block';
-            document.getElementById('ctrl-meh').style.display = 'block';
-            document.getElementById('btn-meh').style.display = 'flex';
-            document.getElementById('prev-meh').src = e.target.result;
-            document.getElementById('meta-meh').textContent = `${f.name} • ${img.width}x${img.height}px`;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const factor = parseFloat(esc.value);
-        const w = Math.round(img.width * factor);
-        const h = Math.round(img.height * factor);
-        const c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        const ctx = c.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, w, h);
-        c.toBlob(b => {
-          document.getElementById('down-meh').href = URL.createObjectURL(b);
-          document.getElementById('res-meh').classList.add('show');
-        }, 'image/jpeg', 0.95);
-      });
-    }
-
-    function resetMeh() {
-      document.getElementById('drop-meh').style.display = 'block';
-      document.getElementById('info-meh').style.display = 'none';
-      document.getElementById('ctrl-meh').style.display = 'none';
-      document.getElementById('btn-meh').style.display = 'none';
-      document.getElementById('res-meh').classList.remove('show');
-    }
-
-    function renderDesfoque() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-des"><div class="dropzone-icon">👤</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-des" accept="image/*"></div>
-        <div id="info-des" style="display:none;"><canvas id="can-des" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-des"></p></div>
-        <div class="control-group" id="ctrl-des" style="display:none;"><label>Intensidade</label><input type="range" id="int-des" min="3" max="30" value="15"><small id="int-val">15px</small></div>
-        <div class="button-group" id="btn-des" style="display:none;"><button class="btn-secondary" onclick="resetDes()">Limpar</button><button class="btn-primary" id="proc-des">👤 Desfoque</button></div>
-        <div class="result-section" id="res-des"><a href="#" class="download-btn" id="down-des" download="imagem.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-des');
-      const inp = document.getElementById('inp-des');
-      const btn = document.getElementById('proc-des');
-      const int = document.getElementById('int-des');
-      let img;
-
-      int.addEventListener('input', e => document.getElementById('int-val').textContent = e.target.value + 'px');
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-des').style.display = 'block';
-            document.getElementById('ctrl-des').style.display = 'block';
-            document.getElementById('btn-des').style.display = 'flex';
-            document.getElementById('meta-des').textContent = `${f.name} • ${img.width}x${img.height}px`;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const can = document.getElementById('can-des');
-        can.width = img.width;
-        can.height = img.height;
-        const ctx = can.getContext('2d');
-        ctx.filter = `blur(${int.value}px)`;
-        ctx.drawImage(img, 0, 0);
-        can.style.display = 'block';
-        can.toBlob(b => {
-          document.getElementById('down-des').href = URL.createObjectURL(b);
-          document.getElementById('res-des').classList.add('show');
-        }, 'image/jpeg', 0.9);
-      });
-    }
-
-    function resetDes() {
-      document.getElementById('drop-des').style.display = 'block';
-      document.getElementById('info-des').style.display = 'none';
-      document.getElementById('ctrl-des').style.display = 'none';
-      document.getElementById('btn-des').style.display = 'none';
-      document.getElementById('res-des').classList.remove('show');
-      document.getElementById('can-des').style.display = 'none';
-    }
-
-    function renderMarcaImg() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-mar"><div class="dropzone-icon">🎨</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-mar" accept="image/*"></div>
-        <div id="info-mar" style="display:none;"><canvas id="can-mar" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-mar"></p></div>
-        <div id="ctrl-mar" style="display:none;"><div class="control-group"><label>Texto</label><input type="text" id="txt-mar" value="© Tudis"></div><div class="control-group"><label>Tamanho</label><input type="range" id="tam-mar" min="10" max="100" value="30"><small id="tam-val">30px</small></div><div class="control-group"><label>Opacidade</label><input type="range" id="opa-mar" min="0.1" max="1" step="0.1" value="0.7"><small id="opa-val">70%</small></div></div>
-        <div class="button-group" id="btn-mar" style="display:none;"><button class="btn-secondary" onclick="resetMar()">Limpar</button><button class="btn-primary" id="proc-mar">🎨 Marcar</button></div>
-        <div class="result-section" id="res-mar"><a href="#" class="download-btn" id="down-mar" download="imagem.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-mar');
-      const inp = document.getElementById('inp-mar');
-      const btn = document.getElementById('proc-mar');
-      const tam = document.getElementById('tam-mar');
-      const opa = document.getElementById('opa-mar');
-      let img;
-
-      tam.addEventListener('input', e => document.getElementById('tam-val').textContent = e.target.value + 'px');
-      opa.addEventListener('input', e => document.getElementById('opa-val').textContent = Math.round(e.target.value * 100) + '%');
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-mar').style.display = 'block';
-            document.getElementById('ctrl-mar').style.display = 'block';
-            document.getElementById('btn-mar').style.display = 'flex';
-            document.getElementById('meta-mar').textContent = `${f.name} • ${img.width}x${img.height}px`;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const can = document.getElementById('can-mar');
-        can.width = img.width;
-        can.height = img.height;
-        const ctx = can.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        ctx.font = `bold ${tam.value}px Arial`;
-        ctx.fillStyle = `rgba(255,255,255,${opa.value})`;
-        ctx.textAlign = 'center';
-        ctx.fillText(document.getElementById('txt-mar').value, can.width / 2, can.height - 30);
-        can.style.display = 'block';
-        can.toBlob(b => {
-          document.getElementById('down-mar').href = URL.createObjectURL(b);
-          document.getElementById('res-mar').classList.add('show');
-        }, 'image/jpeg', 0.9);
-      });
-    }
-
-    function resetMar() {
-      document.getElementById('drop-mar').style.display = 'block';
-      document.getElementById('info-mar').style.display = 'none';
-      document.getElementById('ctrl-mar').style.display = 'none';
-      document.getElementById('btn-mar').style.display = 'none';
-      document.getElementById('res-mar').classList.remove('show');
-      document.getElementById('can-mar').style.display = 'none';
-    }
-
-    function renderMemes() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="dropzone" id="drop-mem"><div class="dropzone-icon">😂</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-mem" accept="image/*"></div>
-        <div id="info-mem" style="display:none;"><canvas id="can-mem" style="max-width:100%;border-radius:8px;display:none;"></canvas><p id="meta-mem"></p></div>
-        <div id="ctrl-mem" style="display:none;"><div class="control-group"><label>Texto Superior</label><input type="text" id="top-mem" placeholder="Texto"></div><div class="control-group"><label>Texto Inferior</label><input type="text" id="bot-mem" placeholder="Texto"></div></div>
-        <div class="button-group" id="btn-mem" style="display:none;"><button class="btn-secondary" onclick="resetMem()">Limpar</button><button class="btn-primary" id="proc-mem">😂 Criar Meme</button></div>
-        <div class="result-section" id="res-mem"><a href="#" class="download-btn" id="down-mem" download="meme.jpg">⬇️ Baixar</a></div>
-      `;
-      const drop = document.getElementById('drop-mem');
-      const inp = document.getElementById('inp-mem');
-      const btn = document.getElementById('proc-mem');
-      let img;
-
-      drop.addEventListener('click', () => inp.click());
-      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
-      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
-      inp.addEventListener('change', e => loadImg(e.target.files[0]));
-
-      function loadImg(f) {
-        const r = new FileReader();
-        r.onload = e => {
-          const i = new Image();
-          i.onload = () => {
-            img = i;
-            drop.style.display = 'none';
-            document.getElementById('info-mem').style.display = 'block';
-            document.getElementById('ctrl-mem').style.display = 'block';
-            document.getElementById('btn-mem').style.display = 'flex';
-            document.getElementById('meta-mem').textContent = `${f.name} • ${img.width}x${img.height}px`;
-          };
-          i.src = e.target.result;
-        };
-        r.readAsDataURL(f);
-      }
-
-      btn.addEventListener('click', () => {
-        const can = document.getElementById('can-mem');
-        can.width = img.width;
-        can.height = img.height + 100;
-        const ctx = can.getContext('2d');
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, can.width, 50);
-        ctx.fillRect(0, can.height - 50, can.width, 50);
-        ctx.drawImage(img, 0, 50);
-        ctx.font = 'bold 30px Arial';
-        ctx.fillStyle = 'white';
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 3;
-        ctx.textAlign = 'center';
-        const top = document.getElementById('top-mem').value.toUpperCase();
-        const bot = document.getElementById('bot-mem').value.toUpperCase();
-        ctx.strokeText(top, can.width / 2, 35);
-        ctx.fillText(top, can.width / 2, 35);
-        ctx.strokeText(bot, can.width / 2, can.height - 15);
-        ctx.fillText(bot, can.width / 2, can.height - 15);
-        can.style.display = 'block';
-        can.toBlob(b => {
-          document.getElementById('down-mem').href = URL.createObjectURL(b);
-          document.getElementById('res-mem').classList.add('show');
-        }, 'image/jpeg', 0.9);
-      });
-    }
-
-    function resetMem() {
-      document.getElementById('drop-mem').style.display = 'block';
-      document.getElementById('info-mem').style.display = 'none';
-      document.getElementById('ctrl-mem').style.display = 'none';
-      document.getElementById('btn-mem').style.display = 'none';
-      document.getElementById('res-mem').classList.remove('show');
-      document.getElementById('can-mem').style.display = 'none';
-    }
-
-    // ====== QR CODE ======
-    function renderQRURL() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="control-group">
-          <label>Cole a URL:</label>
-          <input type="text" id="qr-url-input" placeholder="https://exemplo.com">
-        </div>
-        <div class="button-group">
-          <button class="btn-secondary" onclick="resetQR()">Limpar</button>
-          <button class="btn-primary" onclick="generateQRURL()">🌐 Gerar QR Code</button>
-        </div>
-        <div id="qr-display"></div>
-        <div class="result-section" id="qr-result">
-          <a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR Code</a>
-        </div>
-      `;
-    }
-
-    function renderQRTexto() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="control-group">
-          <label>Digite o texto:</label>
-          <textarea id="qr-text-input" placeholder="Seu texto aqui..."></textarea>
-        </div>
-        <div class="button-group">
-          <button class="btn-secondary" onclick="resetQR()">Limpar</button>
-          <button class="btn-primary" onclick="generateQRText()">📝 Gerar QR Code</button>
-        </div>
-        <div id="qr-display"></div>
-        <div class="result-section" id="qr-result">
-          <a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR Code</a>
-        </div>
-      `;
-    }
-
-    function renderQRWiFi() {
-      document.getElementById('modal-body').innerHTML = `
-        <div class="control-group">
-          <label>Nome da Rede (SSID):</label>
-          <input type="text" id="qr-wifi-ssid" placeholder="Nome da rede">
-        </div>
-        <div class="control-group">
-          <label>Senha:</label>
-          <input type="password" id="qr-wifi-pwd" placeholder="Senha do WiFi">
-        </div>
-        <div class="button-group">
-          <button class="btn-secondary" onclick="resetQR()">Limpar</button>
-          <button class="btn-primary" onclick="generateQRWiFi()">📡 Gerar QR Code</button>
-        </div>
-        <div id="qr-display"></div>
-        <div class="result-section" id="qr-result">
-          <a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR Code</a>
-        </div>
-      `;
-    }
-
-    function generateQRURL() {
-      const url = document.getElementById('qr-url-input').value;
-      if(!url) return alert('Digite uma URL');
-      generateQR(url);
-    }
-
-    function generateQRText() {
-      const text = document.getElementById('qr-text-input').value;
-      if(!text) return alert('Digite algo');
-      generateQR(text);
-    }
-
-    function generateQRWiFi() {
-      const ssid = document.getElementById('qr-wifi-ssid').value;
-      const pwd = document.getElementById('qr-wifi-pwd').value;
-      if(!ssid) return alert('Digite o nome da rede');
-      const wifiString = `WIFI:T:WPA;S:${ssid};P:${pwd};;`;
-      generateQR(wifiString);
-    }
-
-    function generateQR(text) {
-      const display = document.getElementById('qr-display');
-      display.innerHTML = '';
-      display.classList.add('show');
-      
-      new QRCode(display, {
-        text: text,
-        width: 300,
-        height: 300,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-
-      setTimeout(() => {
-        const canvas = display.querySelector('canvas');
-        canvas.toBlob(blob => {
-          const url = URL.createObjectURL(blob);
-          document.getElementById('qr-down').href = url;
-          document.getElementById('qr-result').classList.add('show');
-        });
-      }, 100);
-    }
-
-    function resetQR() {
-      document.getElementById('qr-display').innerHTML = '';
-      document.getElementById('qr-display').classList.remove('show');
-      document.getElementById('qr-result').classList.remove('show');
-      if(document.getElementById('qr-url-input')) document.getElementById('qr-url-input').value = '';
-      if(document.getElementById('qr-text-input')) document.getElementById('qr-text-input').value = '';
-      if(document.getElementById('qr-wifi-ssid')) {
-        document.getElementById('qr-wifi-ssid').value = '';
-        document.getElementById('qr-wifi-pwd').value = '';
-      }
-    }
-
-    // Iniciar
-    initializeUI();
-    document.getElementById('tool-modal').addEventListener('click', e => {
-      if(e.target.id === 'tool-modal') closeModal();
-    });
-
-    window.generateQRURL = generateQRURL;
-    window.generateQRText = generateQRText;
-    window.generateQRWiFi = generateQRWiFi;
-    window.resetQR = resetQR;
-    window.resetSeparar = resetSeparar;
-    window.resetJuntar = resetJuntar;
-    window.resetCompImg = resetCompImg;
-    window.resetRedImg = resetRedImg;
-    window.resetRecImg = resetRecImg;
-    window.resetGirImg = resetGirImg;
-    window.resetRbg = resetRbg;
-    window.resetMeh = resetMeh;
-    window.resetDes = resetDes;
-    window.resetMar = resetMar;
-    window.resetMem = resetMem;
-  </script>
 </body>
 </html>
