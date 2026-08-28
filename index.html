@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tudis - PDF, Imagens, QR Code</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2563eb;
+      --secondary: #f97316;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: white;
+      color: var(--gray-900);
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      background: white;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .logo-name {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--gray-600);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover {
+      color: var(--primary);
+    }
+
+    .btn-nav {
+      background: var(--primary);
+      color: white;
+      padding: 0.6rem 1.5rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-nav:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Hero Section */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      padding: 4rem 3rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .hero-content h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      color: var(--gray-600);
+      margin-bottom: 2rem;
+      max-width: 500px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 0.9rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--primary);
+      padding: 0.9rem 2rem;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-100);
+    }
+
+    .hero-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-image img {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+      border-radius: 16px;
+      object-fit: contain;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .decorative {
+      position: absolute;
+      font-size: 3rem;
+      opacity: 0.3;
+    }
+
+    /* Ferramentas */
+    .tools-section {
+      background: var(--gray-100);
+      padding: 4rem 3rem;
+    }
+
+    .tools-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .tools-section h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 0.7rem 1.5rem;
+      background: white;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      color: var(--gray-600);
+    }
+
+    .tab:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .tool-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.15);
+      border-color: var(--primary);
+    }
+
+    .tool-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .tool-name {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .tool-desc {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .modal.show {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 2rem;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    .dropzone {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      background: rgba(37, 99, 235, 0.05);
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 1.5rem;
+    }
+
+    .dropzone:hover,
+    .dropzone.drag-over {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.1);
+    }
+
+    .dropzone-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .dropzone-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-preview {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-sm-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      flex: 1;
+      min-height: 44px;
+    }
+
+    .btn-sm-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-sm-secondary {
+      background: var(--gray-100);
+      color: var(--gray-900);
+      border: 1px solid var(--gray-200);
+    }
+
+    .btn-sm-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    .result-section {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.1));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-top: 1.5rem;
+      display: none;
+      text-align: center;
+    }
+
+    .result-section.show {
+      display: block;
+    }
+
+    .result-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .result-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      gap: 0.5rem;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .download-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .control-group {
+      margin-bottom: 1rem;
+    }
+
+    .control-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .control-group input[type="range"],
+    .control-group input[type="text"],
+    .control-group input[type="number"],
+    .control-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--gray-200);
+      border-radius: 4px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 150px;
+      font-family: monospace;
+    }
+
+    canvas {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+
+    #qr-display {
+      text-align: center;
+      margin: 2rem 0;
+      display: none;
+    }
+
+    #qr-display.show {
+      display: block;
+    }
+
+    footer {
+      background: var(--gray-900);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      nav {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 2rem 1rem;
+      }
+
+      .hero-content h1 {
+        font-size: 2.5rem;
+      }
+
+      .tools-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo-section">
+      <img src="https://static.wixstatic.com/media/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png/v1/fill/w_474,h_598,al_c,lg_1,q_85,enc_avif,quality_auto/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png" alt="Tudis" class="logo-img">
+      <div class="logo-name">Tudis</div>
+    </div>
+    <nav>
+      <a href="#ferramentas">Ferramentas</a>
+      <a href="#sobre">Sobre</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Fazemos documentos fáceis.</h1>
+      <p>Todas as ferramentas que você precisa para ser mais produtivo e trabalhar de forma inteligente com documentos, imagens e QR codes.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="document.getElementById('ferramentas').scrollIntoView({behavior:'smooth'})">🚀 Explorar Ferramentas</button>
+        <button class="btn-secondary" onclick="alert('Sobre Tudis em breve!')">📖 Saiba Mais</button>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="https://static.wixstatic.com/media/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png/v1/fill/w_474,h_598,al_c,lg_1,q_85,enc_avif,quality_auto/e97d0f_7b2e70b565f34b1aa03de70ad61d0b1f~mv2.png" alt="Tudis">
+      <span class="decorative" style="top: 20px; right: 40px;">📄</span>
+      <span class="decorative" style="bottom: 30px; left: 20px;">🖼️</span>
+      <span class="decorative" style="top: 40%; right: -30px;">🎯</span>
+    </div>
+  </section>
+
+  <!-- Ferramentas -->
+  <section class="tools-section" id="ferramentas">
+    <div class="tools-container">
+      <h2>Todas as Ferramentas</h2>
+      <div class="category-tabs">
+        <button class="tab active" data-cat="todas">Todas</button>
+        <button class="tab" data-cat="pdf">PDF</button>
+        <button class="tab" data-cat="imagem">Imagens</button>
+        <button class="tab" data-cat="qrcode">QR Code</button>
+      </div>
+      <div class="tools-grid" id="tools-grid"></div>
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <div class="modal" id="tool-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title"></h2>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>Tudis v6.16.0 • Desenvolvido por DSP Group adaptando para Tudis</p>
+  </footer>
+
+  <script>
+    const { PDFDocument } = PDFLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const tools = [
+      {id:'separar-pdf',icon:'✂️',name:'Separar PDF',desc:'Separa cada página em arquivo',cat:'pdf'},
+      {id:'juntar-pdf',icon:'📎',name:'Juntar PDF',desc:'Combina múltiplos PDFs',cat:'pdf'},
+      {id:'comprimir-pdf',icon:'🗜️',name:'Comprimir PDF',desc:'Reduz tamanho do PDF',cat:'pdf'},
+      {id:'dividir-pdf',icon:'📊',name:'Dividir PDF',desc:'Divide PDF por intervalo',cat:'pdf'},
+      {id:'rodar-pdf',icon:'🔄',name:'Rodar PDF',desc:'Rotaciona páginas',cat:'pdf'},
+      {id:'numerar-pdf',icon:'#️⃣',name:'Numerar Páginas',desc:'Adiciona números',cat:'pdf'},
+      {id:'marca-pdf',icon:'💧',name:'Marca d\'água',desc:'Adiciona marca ao PDF',cat:'pdf'},
+      {id:'proteger-pdf',icon:'🔐',name:'Proteger PDF',desc:'Adiciona senha',cat:'pdf'},
+      {id:'desbloquear-pdf',icon:'🔓',name:'Desbloquear PDF',desc:'Remove proteção',cat:'pdf'},
+      {id:'comprimir-img',icon:'✅',name:'Comprimir Imagem',desc:'Reduz tamanho',cat:'imagem'},
+      {id:'redimensionar-img',icon:'📐',name:'Redimensionar',desc:'Ajusta dimensões',cat:'imagem'},
+      {id:'recortar-img',icon:'✂️',name:'Recortar Imagem',desc:'Recorta áreas',cat:'imagem'},
+      {id:'girar-img',icon:'🔄',name:'Girar Imagem',desc:'Rotaciona imagem',cat:'imagem'},
+      {id:'remover-bg',icon:'🎯',name:'Remover Fundo',desc:'Remove fundo branco',cat:'imagem'},
+      {id:'melhorar-img',icon:'⬆️',name:'Melhorar Imagem',desc:'Aumenta resolução',cat:'imagem'},
+      {id:'desfoque-img',icon:'👤',name:'Desfoque Facial',desc:'Desfoca rostos',cat:'imagem'},
+      {id:'marca-img',icon:'🎨',name:'Marcar Imagem',desc:'Adiciona marca d\'água',cat:'imagem'},
+      {id:'memes-img',icon:'😂',name:'Gerador de Memes',desc:'Cria memes',cat:'imagem'},
+      {id:'qr-url',icon:'🌐',name:'QR Code URL',desc:'Gera QR de URL',cat:'qrcode'},
+      {id:'qr-texto',icon:'📝',name:'QR Code Texto',desc:'Gera QR de texto',cat:'qrcode'},
+      {id:'qr-wifi',icon:'📡',name:'QR Code WiFi',desc:'Gera QR de WiFi',cat:'qrcode'},
+    ];
+
+    function renderTools(cat) {
+      const grid = document.getElementById('tools-grid');
+      grid.innerHTML = '';
+      const filtered = cat === 'todas' ? tools : tools.filter(t => t.cat === cat);
+      filtered.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'tool-card';
+        card.innerHTML = `<div class="tool-icon">${t.icon}</div><div class="tool-name">${t.name}</div><div class="tool-desc">${t.desc}</div>`;
+        card.addEventListener('click', () => openTool(t));
+        grid.appendChild(card);
+      });
+    }
+
+    function openTool(t) {
+      document.getElementById('modal-title').textContent = t.name;
+      if(t.id === 'separar-pdf') renderSepararPDF();
+      else if(t.id === 'juntar-pdf') renderJuntarPDF();
+      else if(t.id === 'comprimir-img') renderComprimirImg();
+      else if(t.id === 'qr-url') renderQRURL();
+      else if(t.id === 'qr-texto') renderQRTexto();
+      else if(t.id === 'qr-wifi') renderQRWiFi();
+      else document.getElementById('modal-body').innerHTML = '<p style="text-align:center;padding:2rem;">✅ Ferramenta pronta para implementação.</p>';
+      document.getElementById('tool-modal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('tool-modal').classList.remove('show');
+    }
+
+    // SEPARAR PDF
+    function renderSepararPDF() {
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-sep"><div class="dropzone-icon">📤</div><div class="dropzone-text">Arraste seu PDF</div><input type="file" id="inp-sep" accept="application/pdf"></div>
+        <div id="info-sep" style="display:none;"><p id="meta-sep"></p></div>
+        <div class="button-group" id="btn-sep" style="display:none;"><button class="btn-sm-secondary" onclick="resetSeparar()">Limpar</button><button class="btn-sm-primary" id="proc-sep">✂️ Separar</button></div>
+        <div class="result-section" id="res-sep"><a href="#" class="download-btn" id="down-sep" download="paginas.zip">⬇️ Baixar ZIP</a></div>
+      `;
+      const drop = document.getElementById('drop-sep');
+      const inp = document.getElementById('inp-sep');
+      const btn = document.getElementById('proc-sep');
+      let file = null;
+
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadFile(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadFile(e.target.files[0]));
+
+      async function loadFile(f) {
+        if(!f || f.type !== 'application/pdf') return alert('Selecione um PDF');
+        file = f;
+        drop.style.display = 'none';
+        document.getElementById('info-sep').style.display = 'block';
+        document.getElementById('btn-sep').style.display = 'flex';
+        document.getElementById('meta-sep').textContent = `${f.name} • ${(f.size/1024/1024).toFixed(1)}MB`;
+        const buf = await f.arrayBuffer();
+        const pdf = await PDFDocument.load(buf, {ignoreEncryption: true});
+        btn.disabled = false;
+        btn.textContent = `✂️ Separar ${pdf.getPageCount()} página(s)`;
+      }
+
+      btn.addEventListener('click', async () => {
+        if(!file) return;
+        btn.disabled = true;
+        const buf = await file.arrayBuffer();
+        const pdf = await PDFDocument.load(buf, {ignoreEncryption: true});
+        const zip = new JSZip();
+        const count = pdf.getPageCount();
+        for(let i = 0; i < count; i++) {
+          const newPdf = await PDFDocument.create();
+          const [page] = await newPdf.copyPages(pdf, [i]);
+          newPdf.addPage(page);
+          const bytes = await newPdf.save();
+          zip.file(`pagina-${String(i+1).padStart(3,'0')}.pdf`, bytes);
+        }
+        const blob = await zip.generateAsync({type:'blob'});
+        const url = URL.createObjectURL(blob);
+        document.getElementById('down-sep').href = url;
+        document.getElementById('res-sep').classList.add('show');
+        btn.disabled = false;
+      });
+    }
+
+    function resetSeparar() {
+      document.getElementById('drop-sep').style.display = 'block';
+      document.getElementById('info-sep').style.display = 'none';
+      document.getElementById('btn-sep').style.display = 'none';
+      document.getElementById('res-sep').classList.remove('show');
+    }
+
+    // JUNTAR PDF
+    function renderJuntarPDF() {
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-jun"><div class="dropzone-icon">📎</div><div class="dropzone-text">Arraste PDFs</div><input type="file" id="inp-jun" accept="application/pdf" multiple></div>
+        <div id="info-jun" style="display:none;"><div id="list-jun"></div></div>
+        <div class="button-group" id="btn-jun" style="display:none;"><button class="btn-sm-secondary" onclick="resetJuntar()">Limpar</button><button class="btn-sm-primary" id="proc-jun">📎 Juntar</button></div>
+        <div class="result-section" id="res-jun"><a href="#" class="download-btn" id="down-jun" download="arquivo.pdf">⬇️ Baixar PDF</a></div>
+      `;
+      const drop = document.getElementById('drop-jun');
+      const inp = document.getElementById('inp-jun');
+      const btn = document.getElementById('proc-jun');
+      let files = [];
+
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadFiles(e.dataTransfer.files);});
+      inp.addEventListener('change', e => loadFiles(e.target.files));
+
+      function loadFiles(f) {
+        files = Array.from(f).filter(x => x.type === 'application/pdf');
+        if(!files.length) return alert('Selecione PDFs');
+        drop.style.display = 'none';
+        document.getElementById('info-jun').style.display = 'block';
+        document.getElementById('btn-jun').style.display = 'flex';
+        let html = '<strong>Arquivos:</strong><ul style="margin-top:0.5rem;">';
+        files.forEach((f, i) => html += `<li>${i+1}. ${f.name}</li>`);
+        html += '</ul>';
+        document.getElementById('list-jun').innerHTML = html;
+        btn.disabled = false;
+      }
+
+      btn.addEventListener('click', async () => {
+        if(!files.length) return;
+        btn.disabled = true;
+        const merged = await PDFDocument.create();
+        for(let f of files) {
+          const buf = await f.arrayBuffer();
+          const pdf = await PDFDocument.load(buf, {ignoreEncryption: true});
+          const pages = await merged.copyPages(pdf, pdf.getPageIndices());
+          pages.forEach(p => merged.addPage(p));
+        }
+        const bytes = await merged.save();
+        const blob = new Blob([bytes], {type: 'application/pdf'});
+        const url = URL.createObjectURL(blob);
+        document.getElementById('down-jun').href = url;
+        document.getElementById('res-jun').classList.add('show');
+        btn.disabled = false;
+      });
+    }
+
+    function resetJuntar() {
+      document.getElementById('drop-jun').style.display = 'block';
+      document.getElementById('info-jun').style.display = 'none';
+      document.getElementById('btn-jun').style.display = 'none';
+      document.getElementById('res-jun').classList.remove('show');
+    }
+
+    // QR CODE
+    function renderQRURL() {
+      document.getElementById('modal-body').innerHTML = `
+        <div class="control-group"><label>Cole a URL:</label><input type="text" id="qr-url-input" placeholder="https://exemplo.com"></div>
+        <div class="button-group"><button class="btn-sm-secondary" onclick="resetQR()">Limpar</button><button class="btn-sm-primary" onclick="generateQRURL()">🌐 Gerar QR</button></div>
+        <div id="qr-display"></div>
+        <div class="result-section" id="qr-result"><a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR</a></div>
+      `;
+    }
+
+    function renderQRTexto() {
+      document.getElementById('modal-body').innerHTML = `
+        <div class="control-group"><label>Digite o texto:</label><textarea id="qr-text-input" placeholder="Seu texto..."></textarea></div>
+        <div class="button-group"><button class="btn-sm-secondary" onclick="resetQR()">Limpar</button><button class="btn-sm-primary" onclick="generateQRText()">📝 Gerar QR</button></div>
+        <div id="qr-display"></div>
+        <div class="result-section" id="qr-result"><a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR</a></div>
+      `;
+    }
+
+    function renderQRWiFi() {
+      document.getElementById('modal-body').innerHTML = `
+        <div class="control-group"><label>SSID:</label><input type="text" id="qr-wifi-ssid" placeholder="Nome da rede"></div>
+        <div class="control-group"><label>Senha:</label><input type="password" id="qr-wifi-pwd" placeholder="Senha"></div>
+        <div class="button-group"><button class="btn-sm-secondary" onclick="resetQR()">Limpar</button><button class="btn-sm-primary" onclick="generateQRWiFi()">📡 Gerar QR</button></div>
+        <div id="qr-display"></div>
+        <div class="result-section" id="qr-result"><a href="#" class="download-btn" id="qr-down" download="qrcode.png">⬇️ Baixar QR</a></div>
+      `;
+    }
+
+    function generateQRURL() {
+      const url = document.getElementById('qr-url-input').value;
+      if(!url) return alert('Digite uma URL');
+      generateQR(url);
+    }
+
+    function generateQRText() {
+      const text = document.getElementById('qr-text-input').value;
+      if(!text) return alert('Digite algo');
+      generateQR(text);
+    }
+
+    function generateQRWiFi() {
+      const ssid = document.getElementById('qr-wifi-ssid').value;
+      const pwd = document.getElementById('qr-wifi-pwd').value;
+      if(!ssid) return alert('Digite o SSID');
+      generateQR(`WIFI:T:WPA;S:${ssid};P:${pwd};;`);
+    }
+
+    function generateQR(text) {
+      const display = document.getElementById('qr-display');
+      display.innerHTML = '';
+      display.classList.add('show');
+      new QRCode(display, {text, width: 300, height: 300});
+      setTimeout(() => {
+        const canvas = display.querySelector('canvas');
+        canvas.toBlob(blob => {
+          document.getElementById('qr-down').href = URL.createObjectURL(blob);
+          document.getElementById('qr-result').classList.add('show');
+        });
+      }, 100);
+    }
+
+    function resetQR() {
+      document.getElementById('qr-display').innerHTML = '';
+      document.getElementById('qr-display').classList.remove('show');
+      document.getElementById('qr-result').classList.remove('show');
+    }
+
+    // COMPRIMIR IMAGEM
+    function renderComprimirImg() {
+      document.getElementById('modal-body').innerHTML = `
+        <div class="dropzone" id="drop-comp"><div class="dropzone-icon">✅</div><div class="dropzone-text">Arraste imagem</div><input type="file" id="inp-comp" accept="image/*"></div>
+        <div id="info-comp" style="display:none;"><img id="prev-comp" class="file-preview"><p id="meta-comp"></p></div>
+        <div class="control-group" id="ctrl-comp" style="display:none;"><label>Qualidade</label><input type="range" id="qual-comp" min="10" max="100" value="80"><small id="qual-val">80%</small></div>
+        <div class="button-group" id="btn-comp" style="display:none;"><button class="btn-sm-secondary" onclick="resetCompImg()">Limpar</button><button class="btn-sm-primary" id="proc-comp">✅ Comprimir</button></div>
+        <div class="result-section" id="res-comp"><a href="#" class="download-btn" id="down-comp" download="imagem.jpg">⬇️ Baixar</a></div>
+      `;
+      const drop = document.getElementById('drop-comp');
+      const inp = document.getElementById('inp-comp');
+      const btn = document.getElementById('proc-comp');
+      const qual = document.getElementById('qual-comp');
+      let img;
+
+      qual.addEventListener('input', e => document.getElementById('qual-val').textContent = e.target.value + '%');
+      drop.addEventListener('click', () => inp.click());
+      drop.addEventListener('dragover', e => {e.preventDefault(); drop.classList.add('drag-over');});
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+      drop.addEventListener('drop', e => {e.preventDefault(); drop.classList.remove('drag-over'); loadImg(e.dataTransfer.files[0]);});
+      inp.addEventListener('change', e => loadImg(e.target.files[0]));
+
+      function loadImg(f) {
+        const r = new FileReader();
+        r.onload = e => {
+          const i = new Image();
+          i.onload = () => {
+            img = i;
+            drop.style.display = 'none';
+            document.getElementById('info-comp').style.display = 'block';
+            document.getElementById('ctrl-comp').style.display = 'block';
+            document.getElementById('btn-comp').style.display = 'flex';
+            document.getElementById('prev-comp').src = e.target.result;
+            document.getElementById('meta-comp').textContent = `${f.name} • ${img.width}x${img.height}px`;
+          };
+          i.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+      }
+
+      btn.addEventListener('click', () => {
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        c.toBlob(b => {
+          document.getElementById('down-comp').href = URL.createObjectURL(b);
+          document.getElementById('res-comp').classList.add('show');
+        }, 'image/jpeg', qual.value/100);
+      });
+    }
+
+    function resetCompImg() {
+      document.getElementById('drop-comp').style.display = 'block';
+      document.getElementById('info-comp').style.display = 'none';
+      document.getElementById('ctrl-comp').style.display = 'none';
+      document.getElementById('btn-comp').style.display = 'none';
+      document.getElementById('res-comp').classList.remove('show');
+    }
+
+    // Setup tabs
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        renderTools(t.dataset.cat);
+      });
+    });
+
+    // Modal
+    document.getElementById('tool-modal').addEventListener('click', e => {
+      if(e.target.id === 'tool-modal') closeModal();
+    });
+
+    // Global functions
+    window.resetCompImg = resetCompImg;
+    window.resetSeparar = resetSeparar;
+    window.resetJuntar = resetJuntar;
+    window.resetQR = resetQR;
+    window.generateQRURL = generateQRURL;
+    window.generateQRText = generateQRText;
+    window.generateQRWiFi = generateQRWiFi;
+
+    // Init
+    renderTools('todas');
+  </script>
+</body>
+</html>
